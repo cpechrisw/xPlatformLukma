@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="240"
+		Width="600" Height="240"
+        x:Class="xPlatformLukma.SettingsWindow"
+        Title="Settings"
+		RequestedThemeVariant="Dark"
+		Background="#717480"
+		CanResize="False">
+
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="FontSize" Value="15"/>
+		</Style>
+		<Style Selector="Button">
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+		<Style Selector="Label">
+			<Setter Property="Margin" Value="0,5,0,0"/>
+		</Style>
+		
+	</Window.Styles>
+		
+	
+	<StackPanel Orientation="Vertical" Margin="10,15,5,5" >
+		<TextBlock Text="Unconverted videos directory (top level)"/>
+		<StackPanel Orientation="Horizontal" Margin="0,0,0,25" >
+			<Button Content="Search"/>
+			<Label Name="lbl_UnconvertedVideoDir" Content="Some such directory"/>
+		</StackPanel>
+		<TextBlock Text="Converted videos directory (top level)"/>
+
+		<StackPanel Orientation="Horizontal" Margin="0,0,0,15" >
+			<Button Content="Search"/>
+			<Label Name="lbl_ConvertedVideoDir" Content="Some such directory"/>
+		</StackPanel>
+		<Button Name="btn_Close" Content="Close" Padding="10" Margin="250,25,0,0"/>
+	</StackPanel>
+	
+	
+	
+	
+</Window>

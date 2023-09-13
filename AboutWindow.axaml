@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+		Width="400" Height="200"
+        x:Class="xPlatformLukma.AboutWindow"
+        Title="About"
+		RequestedThemeVariant="Dark"
+		Background="#717480"
+		CanResize="False">
+	
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="FontSize" Value="15"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Button">
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Label">
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
+
+	</Window.Styles>
+
+	<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,10,0,0">
+		<StackPanel Orientation="Vertical" >
+			<TextBlock Text="Lukma" HorizontalAlignment="Center"/>
+			<Label Content="Copyright 2023" FontSize="10" Margin="0,-1,0,0"/>
+			<Label Content="For help or information contact" Margin="0,15,0,5"/>
+			<Label Content="chris@rhythmskydiving.com"/>
+			<Label Content="knjump@gmail.com" Margin="0,-4,0,0"/>
+			<Button Click="ButtonClick_Close" Content="Close" Margin="0,15,0,0"/>
+		</StackPanel>
+	</StackPanel>
+	
+	
+	
+	
+	
+</Window>

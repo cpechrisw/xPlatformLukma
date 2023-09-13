@@ -1,0 +1,185 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" 
+		d:DesignWidth="800" d:DesignHeight="550"
+		MinHeight="550" MinWidth="800"
+        x:Class="xPlatformLukma.MainWindow"
+		x:Name="xMainPage"
+		RequestedThemeVariant="Dark"
+        Title="Lukma">
+	<!--MinHeight="800" MinWidth="1500"-->
+	<!--Shared Menu Definition-->
+	<Window.Resources>
+		<MenuFlyout x:Key="SharedMenuFlyout" Placement="BottomEdgeAlignedLeft" >
+			<MenuItem Header="Categories and Names" Command="{Binding $parent.Menu_CategoryNamesClick}"/>
+			<MenuItem Header="Logos" Command="{Binding $parent.Menu_LogoClick}"/>
+			<MenuItem Header="Settings" Command="{Binding $parent.Menu_SettingsClick}"/>
+			<MenuItem Header="About" Command="{Binding $parent.Menu_AboutClick}"/>
+		</MenuFlyout>
+	</Window.Resources>
+	<!---->
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			
+		</Style>
+		<Style Selector="Button">
+			
+		</Style>
+		<Style Selector="ComboBox">
+			<Setter Property="Background" Value="#404040"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+		<Style Selector="TextBlock">
+			<Setter Property="Background" Value="#404040"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+			
+	</Window.Styles>
+	<!--#404040-->
+	
+	<!--Entire Window-->
+	<Grid RowDefinitions="Auto,*,Auto">
+		
+		<!-- Title Bar and Menu -->
+		<Grid Grid.Row="0" Background="#717480" Height="30" ColumnDefinitions="Auto,*,Auto">
+			<Button Grid.Column="0" FontWeight="Bold" Flyout="{StaticResource SharedMenuFlyout}">Configure</Button>
+				
+			<Label Name="lbl_ScreenRes" Grid.Column="2" VerticalAlignment="Center"
+				   HorizontalAlignment="Left" >Screen Resolution</Label>
+		</Grid>
+		
+		<!-- Main Area -->
+		<Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+			<!--Video views and Controls-->
+			<Grid Grid.Column="1" RowDefinitions="*,Auto" >
+				<!--The view-->
+				<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>
+
+				<StackPanel Grid.Row="1" Orientation="Vertical" Background="#717480" >
+					
+					<Slider Name="slider_VideoSlider" Value="0" HorizontalAlignment="Stretch" 
+							MinWidth="500" TickPlacement="BottomRight" Margin="10,0,10,0"></Slider>
+
+					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto," Margin="10,0,25,5">
+						<Label Grid.Column="0" FontWeight="Bold" >Video Time: </Label>
+						<Label Grid.Column="1" >00:00</Label>
+						<Label Grid.Column="2" > - </Label>
+						<Label Grid.Column="3" >00:00</Label>
+
+						<Label Grid.Column="5" >00:00</Label>
+						<Label Grid.Column="6" Margin="10,0,10,0"> - </Label>
+						<Label Grid.Column="7" >00:00</Label>
+					</Grid>
+					
+					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto," Margin="10,0,10,5">
+						<Button Name="btn_VideoPlay" Grid.Column="0" >Play</Button>
+						<Button Name="btn_VideoRewind" Grid.Column="1" >Rewind</Button>
+						<Button Name="btn_VideoFF" Grid.Column="2" >FFwd</Button>
+						<Button Name="btn_VideoRestart" Grid.Column="3" >Restart</Button>
+						<Button Name="btn_VideoClipStart" Grid.Column="5" >Clip Start</Button>
+						<Button Name="btn_VideoClipEnd" Grid.Column="6" >Clip End</Button>
+					</Grid>
+				</StackPanel>
+				
+				
+			</Grid>
+			
+			<!--Left Hand Controls-->
+			<Border BorderBrush="White" BorderThickness="1" Background="">
+				<Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto"
+				  Width="250"  Margin="5,5,0,0">
+					<StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4">
+						<Label VerticalAlignment="Center" FontWeight="Bold" >Choose Video: </Label>
+						<Button Name="bt_Search" FontWeight="Bold" Content="Search" Padding="7"></Button>
+					</StackPanel>
+					<Label Name="lbl_VideoFile" Grid.Row="1" FontSize="12" >Just some file name</Label>
+
+					<!--Category/Name Labels and Dropdowns-->
+					<Grid Grid.Row="2" ColumnDefinitions="*,*" VerticalAlignment="Center" Margin="2,0,0,0">
+						<StackPanel Grid.Column="0" Orientation="Vertical" >
+							<Label FontWeight="Bold" >Category:</Label>
+							<ComboBox Name="combo_CategoryComboBox" FontSize="12"
+									  Width="120" MaxDropDownHeight="200"></ComboBox>
+						</StackPanel>
+						<StackPanel Name="sPanel_catName" Grid.Column="1" Orientation="Vertical" >
+							<Label Name="lbl_CatName" FontWeight="Bold" >Name:</Label>
+							<ComboBox Name="combo_Name" FontSize="12" Width="120"
+									  MaxDropDownHeight="200"></ComboBox>
+						</StackPanel>
+					</Grid>
+
+					<!--Description/Dive-->
+					<StackPanel Name="sPanel_Description" Grid.Row="3" Margin="0,2,0,0" HorizontalAlignment="Left">
+						<Label Name="lbl_descption" FontWeight="Bold" Margin="2,0,0,0" >Description/Dive:</Label>
+						<TextBox Name="txtb_description" Watermark="No slashes" Margin="2,0,0,0" Width="240" TabIndex=""/>
+					</StackPanel>
+
+
+
+
+					<!--Frame resolution Calendar picker -->
+					<Grid Grid.Row="4" ColumnDefinitions="Auto,*,Auto" Margin="5,5,5,0">
+						<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left">
+							<Label FontWeight="Bold" >Video Quality: </Label>
+							<ComboBox Name="combo_VideoQuality"  PlaceholderText="1080P"
+										FontSize="12" Width="100" MaxDropDownHeight="200">
+							</ComboBox>
+						</StackPanel>
+						<!--Calendar-->
+						<StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
+							<Label FontWeight="Bold" >Video Date: </Label>
+							<CalendarDatePicker Name="date_DatePicker1" Grid.Column="2"
+											SelectedDateFormat="Short" Margin="0,0,0,0"/>
+						</StackPanel>
+
+
+					</Grid>
+					<!--Save/Clear buttons-->
+					<StackPanel  Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center"
+								 Margin="0,5,0,0">
+						<Button Name="btn_save" Width="55" HorizontalContentAlignment="Center" 
+								IsEnabled="False" Content="Save"/>
+						<Button Name="btn_clear" Width="55" HorizontalContentAlignment="Center" Content="Clear"/>
+					</StackPanel>
+					<Label Name="lbl_progressLabel" Grid.Row="6"> Progress of conversion</Label>
+
+
+					<!--Dive Timer and Score-->
+					<Border Grid.Row="8" BorderBrush="White"
+							BorderThickness="1" Padding="3" Margin="4,0,4,5" >
+						<StackPanel  Orientation="Vertical">
+							<Label HorizontalAlignment="Center" FontWeight="Bold" FontSize="20">Score the Dive</Label>
+							
+							<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+								<StackPanel Orientation="Vertical">
+									<Label HorizontalAlignment="Center" FontWeight="Bold">Timer (Sec)</Label>
+									<NumericUpDown Name="cnt_TimerValue" Value="35.0" NumberFormat="" VerticalAlignment="Center" Margin="2" HorizontalAlignment="Center"/>
+								</StackPanel>
+								<StackPanel Orientation="Vertical">
+									<Label FontWeight="Bold">Points</Label>
+									<Label Name="lbl_pointValue" FontSize="25" HorizontalAlignment="Center">0</Label>
+								</StackPanel>
+							</StackPanel>
+
+							<StackPanel HorizontalAlignment="Center" Orientation="Horizontal"
+										Margin="0,5,0,0">
+								<Button>Start</Button>
+								<Button>Point</Button>
+								<Button>Stop</Button>
+								<Button>Reset</Button>
+							</StackPanel>
+
+						</StackPanel>
+					</Border>
+				</Grid>
+			</Border>
+			<!--End of Left Hand Controls-->
+			
+		</Grid>
+		<!--End of Main Area-->
+				
+	</Grid>
+	<!--End of Entire window-->
+</Window>

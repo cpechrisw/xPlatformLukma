@@ -1,0 +1,68 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="320"
+		Width="700" Height="320"
+        x:Class="xPlatformLukma.LogoWindow"
+        Title="Logo"
+		RequestedThemeVariant="Dark"
+		Background="#717480"
+		CanResize="False">
+
+	<Window.Styles>
+		
+		<Style Selector="Button">
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="Width" Value="75"/>
+		</Style>
+
+	</Window.Styles>
+
+	<StackPanel Margin="5,10,0,0">
+		<!--Main Grid-->
+		<Grid ColumnDefinitions="Auto,Auto,Auto,Auto" >
+			<!--Controls and pickers-->
+			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
+				<TextBlock Text="Applies Logo" HorizontalAlignment="Center"/>
+				<TextBlock Text="Edits To:" HorizontalAlignment="Center"/>
+				<RadioButton Content="Primary" IsChecked="True"/>
+				<RadioButton Content="Category"/>
+				<RadioButton Content="Teams"/>
+				<RadioButton Content="Teams - Private"/>
+				<DropDownButton Width="150" IsEnabled="False"/>
+				
+			</StackPanel>
+			<!--Current Logo View and label-->
+			<StackPanel Grid.Column="1" Orientation="Vertical" Margin="0,0,10,0">
+				<Rectangle Height="200" Width="200" Fill="Black"></Rectangle>
+				<Label Content="Current Logo" HorizontalAlignment="Center"/>
+
+			</StackPanel>
+			<!--Buttons-->
+			<StackPanel Grid.Column="2" Orientation="Vertical" Margin="0,0,10,0">
+				<Button Content="Search" />
+				<Button Content="Apply" />
+				<Button Content="Remove" />
+			</StackPanel>
+			<!--New Logo View and label-->
+			<StackPanel Grid.Column="3" Orientation="Vertical">
+				<Rectangle Height="200" Width="200" Fill="Black"></Rectangle>
+				<Label Content="New Logo" HorizontalAlignment="Center"/>
+			</StackPanel>
+			
+			
+			
+		</Grid>
+		<Label Content="Applies to all Categories Except teams"/>
+		<Button Content="Close" Margin="125,0,0,0"/>
+		
+		
+		
+		
+	</StackPanel>
+	
+	
+</Window>
