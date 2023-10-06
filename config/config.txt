@@ -1,0 +1,2 @@
+localVideoDir = "C:\\lukma\\videos"
+convertedVideosTopDir = "C:\\lukma"

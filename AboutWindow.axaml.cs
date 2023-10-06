@@ -12,7 +12,7 @@ public partial class AboutWindow : Window
     {
         InitializeComponent();
     }
-    public void ButtonClick_Close(object? sender, RoutedEventArgs args)
+    public void ButtonClick_Close(object sender, RoutedEventArgs args)
     {
         this.Close();
     }
