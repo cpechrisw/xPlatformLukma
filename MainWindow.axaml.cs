@@ -137,12 +137,12 @@ namespace xPlatformLukma
                     string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
                     if (aLine.Count() == 2)
                     {
-                        string sParameter = aLine[0];
+                        string sParameter = aLine[0].Trim();
                         string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
                         sValue = sValue.Replace("\"", "");
+                        
                         switch (sParameter)
                         {
-
                             case "catPathVar":
                                 configInfo.categoryFile = Path.Combine(configInfo.configDir, sValue);
                                 break;
@@ -292,7 +292,7 @@ namespace xPlatformLukma
 
         public void Menu_SettingsClick()
         {
-            _settingsWindow ??= new();
+            _settingsWindow ??= new(configInfo);
             _settingsWindow.Show();
         }
         public void Menu_LogoClick()

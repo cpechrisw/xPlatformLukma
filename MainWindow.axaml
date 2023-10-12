@@ -56,7 +56,9 @@
 			<Grid Grid.Column="1" RowDefinitions="*,Auto" >
 				<!--The view-->
 				<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>
-
+				<Viewbox Grid.Row="0" > </Viewbox>
+				
+				<!--Bottom Sliders and buttons-->
 				<StackPanel Grid.Row="1" Orientation="Vertical" Background="#717480" >
 					
 					<Slider Name="slider_VideoSlider" Value="0" HorizontalAlignment="Stretch" 
@@ -68,9 +70,10 @@
 						<Label Grid.Column="2" > - </Label>
 						<Label Grid.Column="3" >00:00</Label>
 
-						<Label Grid.Column="5" >00:00</Label>
+						<!--To be added later for clipping-->
+						<!--<Label Grid.Column="5" >00:00</Label>
 						<Label Grid.Column="6" Margin="10,0,10,0"> - </Label>
-						<Label Grid.Column="7" >00:00</Label>
+						<Label Grid.Column="7" >00:00</Label>-->
 					</Grid>
 					
 					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto," Margin="10,0,10,5">
@@ -78,8 +81,10 @@
 						<Button Name="btn_VideoRewind" Grid.Column="1" >Rewind</Button>
 						<Button Name="btn_VideoFF" Grid.Column="2" >FFwd</Button>
 						<Button Name="btn_VideoRestart" Grid.Column="3" >Restart</Button>
-						<Button Name="btn_VideoClipStart" Grid.Column="5" >Clip Start</Button>
-						<Button Name="btn_VideoClipEnd" Grid.Column="6" >Clip End</Button>
+						
+						<!--To be added later for clipping-->
+						<!--<Button Name="btn_VideoClipStart" Grid.Column="5" >Clip Start</Button>
+						<Button Name="btn_VideoClipEnd" Grid.Column="6" >Clip End</Button>-->
 					</Grid>
 				</StackPanel>
 				
