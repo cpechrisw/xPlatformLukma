@@ -14,9 +14,13 @@ public partial class CategoriesWindow : Window
     ConfigStruct myConfigInfo;
     Dictionary<string, string[]> myCategoriesDic;
 
-    public CategoriesWindow(ConfigStruct configInfo, Dictionary<string, string[]> categoriesDic)
-    {
+    public CategoriesWindow()
+    { 
         InitializeComponent();
+    }
+    public CategoriesWindow(ConfigStruct configInfo, Dictionary<string, string[]> categoriesDic)
+        :this()
+    {
         myConfigInfo = configInfo;
         myCategoriesDic = categoriesDic;
         InitializeBtns();
@@ -215,7 +219,7 @@ public partial class CategoriesWindow : Window
             if (!myCategoriesDic.ContainsKey(txtBox_NewCategory.Text))
             {
                 //Add it to the dictionary
-                string[] newString = { };
+                string[] newString = Array.Empty<string>();
                 myCategoriesDic.Add(txtBox_NewCategory.Text, newString);
 
                 //add it to the list box
@@ -227,7 +231,7 @@ public partial class CategoriesWindow : Window
                 AddLineToFile(filePath, txtBox_NewCategory.Text);
 
                 //create a new file
-                using (StreamWriter file = new StreamWriter(myConfigInfo.categoryFile, true))
+                using (StreamWriter file = new(myConfigInfo.categoryFile, true))
                 {
 
                     //Creating new category file so names can be added

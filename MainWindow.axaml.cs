@@ -6,6 +6,7 @@ using System.Diagnostics;
 using LibVLCSharp.Shared;     //pre 4.0 version
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace xPlatformLukma
 {
@@ -29,11 +30,11 @@ namespace xPlatformLukma
         VideoData BillvideoData;				//Does NOT need to be Global
         VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
 
-        //----VLC variables
+        //----Video VLC variables
         public LibVLC _libVLC;
         public MediaPlayer _mp;
         public Media _media;
-        public bool vlc_isFullscreen = false;
+        public string initVideoDirectory;
         //public Size vlc_oldVideoSize;
         //public Size vlc_oldFormSize;
         //public Point vlc_oldVideoLocation;
@@ -92,6 +93,7 @@ namespace xPlatformLukma
             ReadConfig();
             ReadCategoryFiles();
             Load_ComboBoxes();
+            InitializeEvents();
 
         }
         //-----Reads the config files
@@ -218,9 +220,9 @@ namespace xPlatformLukma
                     string filePath = Path.Combine(configInfo.configDir, keyValue + ".txt");
                     if (File.Exists(filePath))
                     {
-                        using (StreamReader sr = new StreamReader(filePath))
+                        using (StreamReader sr = new(filePath))
                         {
-                            List<string> arrString = new List<string>();
+                            List<string> arrString = new();
                             while (!sr.EndOfStream)
                             {
 
@@ -261,14 +263,78 @@ namespace xPlatformLukma
         //
         //---------Helper Events
         //
+        private void InitializeEvents()
+        {
+            btn_Search.Click += SearchButton_Click;
+
+            //btn_Search
+            //btn_Save += 
+            //btn_Clear += 
+            //btn_VideoPlay += 
+            //btn_VideoRewind += 
+            //btn_VideoFF += 
+            //btn_VideoRestart += 
+            
+        }
+        private async Task<string> ReturnSeachFile()
+        {
+            if (initVideoDirectory == null || !Directory.Exists(initVideoDirectory))
+            {
+                initVideoDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+
+            List<string> extension = new List<string>() { "MP4", "mp4" };
+            FileDialogFilter myFilter = new FileDialogFilter();
+
+            myFilter.Extensions = extension;
+            List<FileDialogFilter> myFilters = new List<FileDialogFilter>();
+            myFilters.Add(myFilter);
+            var fileDlg = new OpenFileDialog()
+            {
+                Title = "Select video file",
+                AllowMultiple = false,
+                Directory = initVideoDirectory,
+                Filters = myFilters,
+            };
+            string[] result = await fileDlg.ShowAsync(this);
+            string sResult = "";
+            if (result.Length>0)
+            {
+                sResult= result[0];
+                initVideoDirectory = Path.GetDirectoryName(sResult);
+            }
+            
+            return sResult;
+
+        }
+
         private void ReloadComboBoxes(object sender, EventArgs e)
         {
             //Load_ComboBoxes();
         }
-
+        
+        //
         //
         //---------Button Click Events
         //
+        
+        private async void SearchButton_Click(object sender, EventArgs e)        //Video File Selection Button
+        {
+           
+            string sResult = await ReturnSeachFile();
+            if(sResult != "")
+            {
+                lbl_VideoFile.Content = sResult;
+                //
+                //-------Left off here
+                //
+                //PlayVideo(sResult);
+
+            }
+
+
+        }
+
 
 
         //
@@ -292,12 +358,12 @@ namespace xPlatformLukma
 
         public void Menu_SettingsClick()
         {
-            _settingsWindow ??= new(configInfo);
+            _settingsWindow = new(configInfo);
             _settingsWindow.Show();
         }
         public void Menu_LogoClick()
         {
-            _logoWindow ??= new();
+            _logoWindow = new();
             _logoWindow.Show();
         }
 

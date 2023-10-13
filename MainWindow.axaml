@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         mc:Ignorable="d" 
 		d:DesignWidth="800" d:DesignHeight="550"
 		MinHeight="550" MinWidth="800"
@@ -22,7 +23,6 @@
 	<!---->
 	<Window.Styles>
 		<Style Selector="TextBlock">
-			
 		</Style>
 		<Style Selector="Button">
 			
@@ -55,8 +55,11 @@
 			<!--Video views and Controls-->
 			<Grid Grid.Column="1" RowDefinitions="*,Auto" >
 				<!--The view-->
-				<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>
-				<Viewbox Grid.Row="0" > </Viewbox>
+				<!--<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>-->
+				<Panel Grid.Row="0" Background="Black">
+					<vlc:VideoView HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+					<!--<vlc:VideoView Name="videoView" MediaPlayer="{Binding MediaPlayer}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />-->
+				</Panel>
 				
 				<!--Bottom Sliders and buttons-->
 				<StackPanel Grid.Row="1" Orientation="Vertical" Background="#717480" >
@@ -97,7 +100,7 @@
 				  Width="250"  Margin="5,5,0,0">
 					<StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4">
 						<Label VerticalAlignment="Center" FontWeight="Bold" >Choose Video: </Label>
-						<Button Name="bt_Search" FontWeight="Bold" Content="Search" Padding="7"></Button>
+						<Button Name="btn_Search" FontWeight="Bold" Content="Search" Padding="7"></Button>
 					</StackPanel>
 					<Label Name="lbl_VideoFile" Grid.Row="1" FontSize="12" >Just some file name</Label>
 
@@ -144,9 +147,9 @@
 					<!--Save/Clear buttons-->
 					<StackPanel  Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center"
 								 Margin="0,5,0,0">
-						<Button Name="btn_save" Width="55" HorizontalContentAlignment="Center" 
+						<Button Name="btn_Save" Width="55" HorizontalContentAlignment="Center" 
 								IsEnabled="False" Content="Save"/>
-						<Button Name="btn_clear" Width="55" HorizontalContentAlignment="Center" Content="Clear"/>
+						<Button Name="btn_Clear" Width="55" HorizontalContentAlignment="Center" Content="Clear"/>
 					</StackPanel>
 					<Label Name="lbl_progressLabel" Grid.Row="6"> Progress of conversion</Label>
 

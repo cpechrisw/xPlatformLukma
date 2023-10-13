@@ -13,10 +13,14 @@ namespace xPlatformLukma;
 public partial class SettingsWindow : Window
 {
     ConfigStruct myConfigInfo;
+    public SettingsWindow()
+    {
+        InitializeComponent();
+    }
     public SettingsWindow(ConfigStruct configInfo)
+        : this()
     {
         myConfigInfo = configInfo;
-        InitializeComponent();
         ReadConfig();
         InitializeEvents();
     }
