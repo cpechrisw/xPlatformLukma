@@ -6,7 +6,7 @@ using Avalonia.Data;
 using Avalonia.Platform;
 using LibVLCSharp.Shared;
 
-namespace LibVLCSharp.Avalonia
+namespace AvaVLCWindow.Views
 {
     /// <summary>
     /// Avalonia VideoView for Windows, Linux and Mac.

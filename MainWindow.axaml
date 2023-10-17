@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+		
         mc:Ignorable="d" 
 		d:DesignWidth="800" d:DesignHeight="550"
 		MinHeight="550" MinWidth="800"
@@ -10,6 +11,7 @@
 		x:Name="xMainPage"
 		RequestedThemeVariant="Dark"
         Title="Lukma">
+	<!--xmlns:controls="using:AvaVLCWindow.Views"-->
 	<!--MinHeight="800" MinWidth="1500"-->
 	<!--Shared Menu Definition-->
 	<Window.Resources>
@@ -57,7 +59,7 @@
 				<!--The view-->
 				<!--<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>-->
 				<Panel Grid.Row="0" Background="Black">
-					<vlc:VideoView HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+					<vlc:VideoView x:Name="VideoViewer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 					<!--<vlc:VideoView Name="videoView" MediaPlayer="{Binding MediaPlayer}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />-->
 				</Panel>
 				
@@ -67,17 +69,20 @@
 					<Slider Name="slider_VideoSlider" Value="0" HorizontalAlignment="Stretch" 
 							MinWidth="500" TickPlacement="BottomRight" Margin="10,0,10,0"></Slider>
 
-					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto," Margin="10,0,25,5">
-						<Label Grid.Column="0" FontWeight="Bold" >Video Time: </Label>
-						<Label Grid.Column="1" >00:00</Label>
-						<Label Grid.Column="2" > - </Label>
-						<Label Grid.Column="3" >00:00</Label>
+					<Panel Name="pnl_videoTimeLabels">
+						<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto," Margin="10,0,25,5">
+							<Label Grid.Column="0" FontWeight="Bold" >Video Time: </Label>
+							<Label Name="lbl_VideoCurrentTime" Grid.Column="1" >00:00</Label>
+							<Label Grid.Column="2" > - </Label>
+							<Label Name="lbl_VideoEndTime" Grid.Column="3" >00:00</Label>
 
-						<!--To be added later for clipping-->
-						<!--<Label Grid.Column="5" >00:00</Label>
+							<!--To be added later for clipping-->
+							<!--<Label Grid.Column="5" >00:00</Label>
 						<Label Grid.Column="6" Margin="10,0,10,0"> - </Label>
 						<Label Grid.Column="7" >00:00</Label>-->
-					</Grid>
+						</Grid>
+					</Panel>
+					
 					
 					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto," Margin="10,0,10,5">
 						<Button Name="btn_VideoPlay" Grid.Column="0" >Play</Button>
@@ -111,17 +116,17 @@
 							<ComboBox Name="combo_CategoryComboBox" FontSize="12"
 									  Width="120" MaxDropDownHeight="200"></ComboBox>
 						</StackPanel>
-						<StackPanel Name="sPanel_catName" Grid.Column="1" Orientation="Vertical" >
-							<Label Name="lbl_CatName" FontWeight="Bold" >Name:</Label>
-							<ComboBox Name="combo_Name" FontSize="12" Width="120"
-									  MaxDropDownHeight="200"></ComboBox>
+						<StackPanel Name="sPanel_CatSubName" Grid.Column="1" Orientation="Vertical" >
+							<Label Name="lbl_CatSubName" FontWeight="Bold" >Name:</Label>
+							<ComboBox Name="combo_CatSubName" FontSize="12" Width="120"
+									  MaxDropDownHeight="200" />
 						</StackPanel>
 					</Grid>
 
 					<!--Description/Dive-->
 					<StackPanel Name="sPanel_Description" Grid.Row="3" Margin="0,2,0,0" HorizontalAlignment="Left">
-						<Label Name="lbl_descption" FontWeight="Bold" Margin="2,0,0,0" >Description/Dive:</Label>
-						<TextBox Name="txtb_description" Watermark="No slashes" Margin="2,0,0,0" Width="240" TabIndex=""/>
+						<Label Name="lbl_Descption" FontWeight="Bold" Margin="2,0,0,0" >Description/Dive:</Label>
+						<TextBox Name="txtb_Description" Watermark="No slashes" Margin="2,0,0,0" Width="240" TabIndex=""/>
 					</StackPanel>
 
 
@@ -129,18 +134,21 @@
 
 					<!--Frame resolution Calendar picker -->
 					<Grid Grid.Row="4" ColumnDefinitions="Auto,*,Auto" Margin="5,5,5,0">
-						<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left">
+
+						<!--Calendar-->
+						<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Right">
+							<Label FontWeight="Bold" >Video Date: </Label>
+							<CalendarDatePicker Name="date_DatePicker1" Grid.Column="2"
+											SelectedDateFormat="Short" Margin="0,0,0,0"/>
+						</StackPanel>
+						<!--Video Quality-->
+						<StackPanel Grid.Column="2" Name="pnl_VideoQuality" Orientation="Vertical" HorizontalAlignment="Left">
 							<Label FontWeight="Bold" >Video Quality: </Label>
 							<ComboBox Name="combo_VideoQuality"  PlaceholderText="1080P"
 										FontSize="12" Width="100" MaxDropDownHeight="200">
 							</ComboBox>
 						</StackPanel>
-						<!--Calendar-->
-						<StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
-							<Label FontWeight="Bold" >Video Date: </Label>
-							<CalendarDatePicker Name="date_DatePicker1" Grid.Column="2"
-											SelectedDateFormat="Short" Margin="0,0,0,0"/>
-						</StackPanel>
+						
 
 
 					</Grid>

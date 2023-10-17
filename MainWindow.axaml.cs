@@ -3,10 +3,14 @@ using Avalonia.Platform;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using LibVLCSharp.Shared;     //pre 4.0 version
+using LibVLCSharp.Shared;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+using LibVLCSharp.Avalonia;
+using System.Xml;
+using Avalonia.Threading;
 
 namespace xPlatformLukma
 {
@@ -34,7 +38,9 @@ namespace xPlatformLukma
         public LibVLC _libVLC;
         public MediaPlayer _mp;
         public Media _media;
-        public string initVideoDirectory;
+        private string initVideoDirectory;
+        private string currentVideoPath;
+        private VideoView _videoViewer;
         //public Size vlc_oldVideoSize;
         //public Size vlc_oldFormSize;
         //public Point vlc_oldVideoLocation;
@@ -60,9 +66,9 @@ namespace xPlatformLukma
                         
         }
 
-        //-----
-        //-----Helper functions
-        //-----
+        //---------
+        //---------Helper functions
+        //---------
 
         public void LukmaStartup()
         {
@@ -73,27 +79,25 @@ namespace xPlatformLukma
             int screenHeight = Screens.Primary.WorkingArea.Height;
             lbl_ScreenRes.Content = "Monitor Resolution: " + screenWidth.ToString() + "x" + screenHeight.ToString();
 
-            //Form stuff
-            //this.KeyPreview = true;
+            //Form intializations
             //this.FormClosing += Form1_FormClosing;
 
-            //VLC initialization
+            //VLC initialization and View controls
             Core.Initialize();
-            //vlc_oldVideoSize = videoView.Size;
-            //vlc_oldFormSize = this.Size;
-            //vlc_oldVideoLocation = videoView.Location;
             _libVLC = new LibVLC("--input-repeat=2");   //"--verbose=2"
             _mp = new MediaPlayer(_libVLC);
+            _videoViewer = this.Get<VideoView>("VideoViewer");
             //_mp.EndReached += MediaEndReached;
-            //_mp.EnableHardwareDecoding = true;          //Not sure if this is needed or helps
-            //videoView.MediaPlayer = _mp;
-            //
+            VideoViewer.MediaPlayer = _mp;
+            
+
+            //Structure Intializations
             configInfo = new ConfigStruct();
             categoriesDic = new Dictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
             Load_ComboBoxes();
-            InitializeEvents();
+            InitializeEventsAndButtons();
 
         }
         //-----Reads the config files
@@ -137,7 +141,7 @@ namespace xPlatformLukma
                 {
                     string sLine = sr.ReadLine().Trim();
                     string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
-                    if (aLine.Count() == 2)
+                    if (aLine.Length == 2)
                     {
                         string sParameter = aLine[0].Trim();
                         string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
@@ -245,37 +249,164 @@ namespace xPlatformLukma
         private void Load_ComboBoxes()
         {
             
-
-            /*Load_first_ComboBox(categoriesDic);
-            string[] divePool = ReadDivePoolFile(configInfo.divePoolFile);
-
-            Load_NL_Boxes(divePool, NL1);
-            Load_NL_Boxes(divePool, NL2);
-            Load_NL_Boxes(divePool, NL3);
-            Load_NL_Boxes(divePool, NL4);
-            Load_NL_Boxes(divePool, NL5);
-            Load_NL_Boxes(divePool, NL6);
-            Load_NL_Boxes(divePool, NLexit);*/
-        }
-
-
-
-        //
-        //---------Helper Events
-        //
-        private void InitializeEvents()
-        {
-            btn_Search.Click += SearchButton_Click;
-
-            //btn_Search
-            //btn_Save += 
-            //btn_Clear += 
-            //btn_VideoPlay += 
-            //btn_VideoRewind += 
-            //btn_VideoFF += 
-            //btn_VideoRestart += 
+            Load_first_ComboBox(categoriesDic);
+            Load_VideoQuality_comboBox();
             
         }
+        private void Load_first_ComboBox(Dictionary<string, string[]> myDictionary)                                   //Populate categories ComboBox
+        {
+            combo_CategoryComboBox.Items.Clear();
+            for (int i = 0; i < myDictionary.Count; i++)
+            {
+                combo_CategoryComboBox.Items.Add(myDictionary.ElementAt(i).Key);
+
+            }
+        }
+
+        private void Load_VideoQuality_comboBox()
+        {
+            //combo_VideoQuality
+            combo_VideoQuality.Items.Clear();
+            combo_VideoQuality.Items.Add("1080");
+            combo_VideoQuality.Items.Add("720");
+        }
+
+
+        private void PlayVideo(string file)
+        {
+            try
+            {
+                MediaPlayerPlayVideo(file);
+                                
+                //slider_VideoSlider
+
+                //Buttons
+                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Background);
+
+            }
+            catch (Exception ex)
+            {
+                Console.Write("During play video " + ex.Message);
+            }
+
+            /*VideoFileNameBox.Text = OpenFileDialog1.FileName;               //Show the chosen filename in a textbox
+            if (OpenFileDialog1.FileName != null
+                && OpenFileDialog1.FileName != "")
+            {
+                combo_CategoryComboBox.IsEnabled = true;
+            }
+            else
+            {
+                combo_CategoryComboBox.IsEnabled = false;
+            }*/
+        }
+
+        private void MediaPlayerPlayVideo(string filename)
+        {
+
+            if (File.Exists(filename))
+            {
+               
+                MediaPlayerStopVideo();
+                _media = new Media(_libVLC, filename);
+                
+                //Video slider initialization
+                slider_VideoSlider.IsEnabled = true;
+                slider_VideoSlider.Minimum = 0;
+                slider_VideoSlider.Value = 0;
+
+                _mp.Play(_media);
+                _mp.TimeChanged += MP_TimeChanged;
+                _mp.Mute = true;
+                _media?.Dispose();
+            }
+            else
+            {
+                Console.WriteLine("File not found: " + filename);
+            }
+        }
+
+        private void MediaPlayerStopVideo()
+        {
+            if (_mp.IsPlaying)
+            {
+                _mp.Stop();
+                _mp.TimeChanged -= MP_TimeChanged;
+                slider_VideoSlider.Value = 0;
+                slider_VideoSlider.IsEnabled = false;
+                //_mp?.Dispose();       //This is causing the popout
+                //_mp = new MediaPlayer(_libVLC);
+                //VideoViewer.MediaPlayer = _mp;
+                Dispatcher.UIThread.Post(() => UpdateVideoButtons(false), DispatcherPriority.Background);
+            }
+            
+        }
+
+        private void ClearStuff()
+        {
+            updateVideoPath("");
+            combo_CategoryComboBox.SelectedIndex = -1;
+            combo_CatSubName.SelectedIndex = -1;
+            txtb_Description.Clear();
+            btn_Save.IsEnabled = false;
+            
+            //Stop video
+            MediaPlayerStopVideo();
+            UpdateVideoButtons(false);
+            //Updates quote
+            //RandomQuote();
+
+        }
+        //Updates the video buttons
+        private void UpdateVideoButtons(bool update)
+        {
+            btn_VideoPlay.IsEnabled = update;
+            btn_VideoRewind.IsEnabled = update;
+            btn_VideoFF.IsEnabled = update;
+            btn_VideoRestart.IsEnabled = update;
+
+        }
+
+        //updates the global variable and updates the view label
+        private void updateVideoPath(string path)
+        {
+            currentVideoPath = path;
+            lbl_VideoFile.Content = path;
+        }
+
+        //---------
+        //---------End of Helper functions
+        //---------
+
+        //---------
+        //---------Helper Events
+        //---------
+        private void InitializeEventsAndButtons()
+        {
+            
+            
+            btn_Search.Click += SearchButton_Click;
+            combo_CategoryComboBox.IsEnabled = false;
+            combo_CategoryComboBox.SelectionChanged += CategoriesBox_SelectedIndexChanged;
+            combo_CatSubName.IsEnabled = false;
+            combo_CatSubName.SelectionChanged += NamesComboBox_SelectedIndexChanged;
+            txtb_Description.IsEnabled = false;
+
+            slider_VideoSlider.IsEnabled = false;
+            UpdateVideoButtons(false);
+            //combo_CategoryComboBox
+            //combo_CatSubName
+            //txtb_Description
+            //btn_Search
+            //btn_Save.Click += 
+            //btn_Clear.Click += 
+            //btn_VideoPlay.Click += 
+            //btn_VideoRewind.Click += 
+            //btn_VideoFF.Click += 
+            //btn_VideoRestart.Click += 
+
+        }
+
         private async Task<string> ReturnSeachFile()
         {
             if (initVideoDirectory == null || !Directory.Exists(initVideoDirectory))
@@ -310,36 +441,105 @@ namespace xPlatformLukma
 
         private void ReloadComboBoxes(object sender, EventArgs e)
         {
-            //Load_ComboBoxes();
+            Load_ComboBoxes();
         }
-        
-        //
-        //
+
+        private void CategoriesBox_SelectedIndexChanged(object sender, EventArgs e) //populate combo_CatSubName ComboBox and display correct labels and boxes
+        {
+            combo_CatSubName.SelectedIndex = -1;
+            txtb_Description.IsEnabled = false;
+            if (combo_CategoryComboBox.SelectedIndex == -1)
+            {
+                combo_CatSubName.IsEnabled = false;
+            }
+            if (combo_CategoryComboBox.SelectedIndex != -1)
+            {
+                btn_Save.IsEnabled = false;
+                combo_CatSubName.IsEnabled = true;
+
+                String pickedCategory = combo_CategoryComboBox.SelectedItem.ToString();
+                
+                combo_CatSubName.Items.Clear();
+                if (pickedCategory == "Fun Jumpers")
+                {
+                    sPanel_CatSubName.IsVisible = false;
+                    txtb_Description.IsEnabled = true;
+                }
+                else
+                {
+                    sPanel_CatSubName.IsVisible= true;
+                    for (int i = 0; i < categoriesDic[pickedCategory].Length; i++)
+                    {
+                        combo_CatSubName.Items.Add(categoriesDic[pickedCategory][i].ToString());
+                    }
+                }
+
+            }
+            
+        }
+
+
+        private void NamesComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            if (combo_CatSubName.SelectedIndex == -1)
+            {
+                btn_Save.IsEnabled = false;
+            }
+            if (combo_CatSubName.SelectedIndex != -1)
+            {
+                txtb_Description.IsEnabled = true;
+                if (combo_CatSubName.SelectedItem.ToString() == "Rhythm")
+                {
+                    pnl_VideoQuality.IsVisible = false;
+                }
+                else 
+                {
+                    pnl_VideoQuality.IsVisible = true; 
+                }
+            }
+        }
+         
+        private void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
+        {
+            Dispatcher.UIThread.Post(() => UpdateVideoTime(), DispatcherPriority.Background);
+        }
+        private async Task UpdateVideoTime()
+        {
+            TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
+            TimeSpan endTime = TimeSpan.FromMilliseconds(_mp.Length);
+
+            lbl_VideoCurrentTime.Content = currentTime.ToString(@"mm\:ss");
+            lbl_VideoEndTime.Content = endTime.ToString(@"mm\:ss");
+            
+            //Update Slider bar
+            slider_VideoSlider.IsEnabled = true;
+            slider_VideoSlider.Maximum = _mp.Length;
+            slider_VideoSlider.Value = _mp.Time;
+        }
+
+        //---------
         //---------Button Click Events
-        //
-        
+        //---------
+
         private async void SearchButton_Click(object sender, EventArgs e)        //Video File Selection Button
         {
            
             string sResult = await ReturnSeachFile();
             if(sResult != "")
             {
-                lbl_VideoFile.Content = sResult;
-                //
-                //-------Left off here
-                //
-                //PlayVideo(sResult);
-
+                combo_CategoryComboBox.IsEnabled = true;
+                updateVideoPath(sResult);
+                PlayVideo(sResult);
             }
-
 
         }
 
 
 
-        //
+        //---------
         //---------Menu Click Events
-        //
+        //---------
         public void Menu_AboutClick()
         {
             AboutWindow aboutDialog = new();
@@ -369,8 +569,10 @@ namespace xPlatformLukma
 
     }
 
-    //
-    // ---------Data Classes and DataStructures
+    //---------
+    //---------Data Classes and DataStructures
+    //---------
+
     //
     //---Timer Class
     //
@@ -380,7 +582,7 @@ namespace xPlatformLukma
         public Action TimeChanged;
         public Action CountDownFinished;
 
-        public bool IsRunning => pointsTimer.Enabled;
+        public bool IsRunning => pointsTimer.IsEnabled;
 
         public int StepMs
         {
