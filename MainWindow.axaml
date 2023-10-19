@@ -27,7 +27,8 @@
 		<Style Selector="TextBlock">
 		</Style>
 		<Style Selector="Button">
-			
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
 		</Style>
 		<Style Selector="ComboBox">
 			<Setter Property="Background" Value="#404040"/>
@@ -46,7 +47,7 @@
 		
 		<!-- Title Bar and Menu -->
 		<Grid Grid.Row="0" Background="#717480" Height="30" ColumnDefinitions="Auto,*,Auto">
-			<Button Grid.Column="0" FontWeight="Bold" Flyout="{StaticResource SharedMenuFlyout}">Configure</Button>
+			<Button Grid.Column="0" Flyout="{StaticResource SharedMenuFlyout}">Configure</Button>
 				
 			<Label Name="lbl_ScreenRes" Grid.Column="2" VerticalAlignment="Center"
 				   HorizontalAlignment="Left" >Screen Resolution</Label>
@@ -105,7 +106,7 @@
 				  Width="250"  Margin="5,5,0,0">
 					<StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4">
 						<Label VerticalAlignment="Center" FontWeight="Bold" >Choose Video: </Label>
-						<Button Name="btn_Search" FontWeight="Bold" Content="Search" Padding="7"></Button>
+						<Button Name="btn_Search" Content="Search" Padding="7"></Button>
 					</StackPanel>
 					<Label Name="lbl_VideoFile" Grid.Row="1" FontSize="12" >Just some file name</Label>
 
@@ -159,9 +160,12 @@
 								IsEnabled="False" Content="Save"/>
 						<Button Name="btn_Clear" Width="55" HorizontalContentAlignment="Center" Content="Clear"/>
 					</StackPanel>
-					<Label Name="lbl_progressLabel" Grid.Row="6"> Progress of conversion</Label>
-
-
+					<!--Progress label-->
+					<Label Name="lbl_progressLabel" Grid.Row="6" Content="Conversion Progress"/>
+					<!--Quotes label-->
+					<TextBlock Name="textBlock_quotesLabel" Grid.Row="7" Background="Black" 
+							   Width="240" TextWrapping="WrapWithOverflow"
+							   Margin="2,5,0,0" Text="Some Quote"/>
 					<!--Dive Timer and Score-->
 					<Border Grid.Row="8" BorderBrush="White"
 							BorderThickness="1" Padding="3" Margin="4,0,4,5" >
@@ -171,7 +175,9 @@
 							<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
 								<StackPanel Orientation="Vertical">
 									<Label HorizontalAlignment="Center" FontWeight="Bold">Timer (Sec)</Label>
-									<NumericUpDown Name="cnt_TimerValue" Value="35.0" NumberFormat="" VerticalAlignment="Center" Margin="2" HorizontalAlignment="Center"/>
+									<NumericUpDown Name="cnt_TimerValue" Value="35" Margin="2" FontWeight="Bold"
+												   VerticalAlignment="Center" HorizontalAlignment="Center"
+												   Minimum="0" Maximum="65" Increment="1"/>
 								</StackPanel>
 								<StackPanel Orientation="Vertical">
 									<Label FontWeight="Bold">Points</Label>
@@ -181,10 +187,12 @@
 
 							<StackPanel HorizontalAlignment="Center" Orientation="Horizontal"
 										Margin="0,5,0,0">
-								<Button>Start</Button>
-								<Button>Point</Button>
-								<Button>Stop</Button>
-								<Button>Reset</Button>
+								<Button Name="btn_startTimer" Background="Green" Width="60" Content="Start" />
+								<Button Name="btn_addPoint" Background="Blue" Width="60" Content="Point" IsVisible="False"
+										IsEnabled="False"/>
+								<Button Name="btn_stopTimer" Background="Red" Width="60" Content="Stop" 
+										IsEnabled="False"/>
+								<Button Name="btn_resetTimer" Width="60" Content="Reset"/>
 							</StackPanel>
 
 						</StackPanel>

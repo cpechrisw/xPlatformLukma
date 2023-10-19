@@ -125,7 +125,7 @@ public partial class CategoriesWindow : Window
             {
                 txtBox_NewName.IsEnabled = true;
                 lsbox_Name.Items.Clear();
-                for (int i = 0; i < myCategoriesDic[category].Count(); i++)
+                for (int i = 0; i < myCategoriesDic[category].Length; i++)
                 {
                     lsbox_Name.Items.Add(myCategoriesDic[category][i]);
                 }

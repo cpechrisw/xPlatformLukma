@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Avalonia.Media;
+using MsBox.Avalonia;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +13,8 @@ using System.Threading;
 using LibVLCSharp.Avalonia;
 using System.Xml;
 using Avalonia.Threading;
+using System.Diagnostics.Metrics;
+
 
 namespace xPlatformLukma
 {
@@ -30,7 +34,7 @@ namespace xPlatformLukma
 
         Process ffmpeg;
         bool FlagConverting = false;
-        List<VideoData> ListOfFiles = new List<VideoData>();
+        List<VideoData> ListOfFiles = new();
         VideoData BillvideoData;				//Does NOT need to be Global
         VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
 
@@ -50,9 +54,9 @@ namespace xPlatformLukma
         Dictionary<string, string[]> categoriesDic;    //Variable for storing categories and sub categories
 
         //----Points and Timer variables
-        //readonly CountdownTimer timer = new CountdownTimer();
-        int counter = 0; //tracks number of points when using timer
-        decimal Timeset = 35;
+        readonly CountdownTimer timer = new();
+        int counter = 0;    //Keeps track of the points
+        int timeset = 10;   //Keeps track of the initial state of timer
 
 
         //-----End of Global Variables
@@ -86,7 +90,7 @@ namespace xPlatformLukma
             Core.Initialize();
             _libVLC = new LibVLC("--input-repeat=2");   //"--verbose=2"
             _mp = new MediaPlayer(_libVLC);
-            _videoViewer = this.Get<VideoView>("VideoViewer");
+            //_videoViewer = this.Get<VideoView>("VideoViewer");
             //_mp.EndReached += MediaEndReached;
             VideoViewer.MediaPlayer = _mp;
             
@@ -97,7 +101,7 @@ namespace xPlatformLukma
             ReadConfig();
             ReadCategoryFiles();
             Load_ComboBoxes();
-            InitializeEventsAndButtons();
+            InitializeButtonEventsLabels();
 
         }
         //-----Reads the config files
@@ -135,7 +139,7 @@ namespace xPlatformLukma
             configInfo.convertedVideosTopDir = aboveAppDir;
             configInfo.customLogos = new Dictionary<string, string>();
 
-            using (StreamReader sr = new StreamReader(sConfigFile))
+            using (StreamReader sr = new(sConfigFile))
             {
                 while (!sr.EndOfStream)
                 {
@@ -203,7 +207,7 @@ namespace xPlatformLukma
             try
             {
                 string CatPath = configInfo.categoryFile;
-                using (StreamReader sr = new StreamReader(CatPath))
+                using (StreamReader sr = new(CatPath))
                 {
                     while (!sr.EndOfStream)
                     {
@@ -211,7 +215,7 @@ namespace xPlatformLukma
                         string sListItem = sr.ReadLine();
                         if (!String.IsNullOrEmpty(sListItem))
                         {
-                            string[] tmpArray = { };
+                            string[] tmpArray = Array.Empty<string>();
                             categoriesDic.Add(sListItem, tmpArray);
                         }
                     }
@@ -244,16 +248,15 @@ namespace xPlatformLukma
             catch (Exception ex) { Console.WriteLine(ex.Message.ToString()); }
         }
 
-
         //Helper function to load the combo boxes
         private void Load_ComboBoxes()
         {
             
-            Load_first_ComboBox(categoriesDic);
+            Load_Category_ComboBox(categoriesDic);
             Load_VideoQuality_comboBox();
             
         }
-        private void Load_first_ComboBox(Dictionary<string, string[]> myDictionary)                                   //Populate categories ComboBox
+        private void Load_Category_ComboBox(Dictionary<string, string[]> myDictionary)                                   //Populate categories ComboBox
         {
             combo_CategoryComboBox.Items.Clear();
             for (int i = 0; i < myDictionary.Count; i++)
@@ -270,7 +273,6 @@ namespace xPlatformLukma
             combo_VideoQuality.Items.Add("1080");
             combo_VideoQuality.Items.Add("720");
         }
-
 
         private void PlayVideo(string file)
         {
@@ -342,9 +344,42 @@ namespace xPlatformLukma
             
         }
 
+        private void InitializeButtonEventsLabels()
+        {
+            btn_Search.Click += SearchButton_Click;
+            combo_CategoryComboBox.IsEnabled = false;
+            combo_CategoryComboBox.SelectionChanged += CategoriesBox_SelectedIndexChanged;
+            combo_CatSubName.IsEnabled = false;
+            combo_CatSubName.SelectionChanged += NamesComboBox_SelectedIndexChanged;
+            txtb_Description.IsEnabled = false;
+
+            slider_VideoSlider.IsEnabled = false;
+            UpdateVideoButtons(false);
+
+            txtb_Description.TextChanged += DescriptionTextBox_TextChanged;
+            btn_Clear.Click += ClearButton_Click;
+            btn_Save.Click += SaveButton_Click;
+
+            btn_startTimer.Click += StartTimerButton_Click;
+            btn_addPoint.Click += PointButton_Click;
+            btn_stopTimer.Click += StopTimerButton_Click;
+            btn_resetTimer.Click += ResetTimerButton_Click;
+
+
+            btn_VideoPlay.Click += VideoPlayPause_Click;
+            btn_VideoRewind.Click += VideoRwd_Click;
+            btn_VideoFF.Click += VideoFwd_Click;
+            btn_VideoRestart.Click += VideoRestart_Click;
+
+            cnt_TimerValue.Value = timeset;
+            date_DatePicker1.SelectedDate = DateTime.Now;
+            lbl_VideoFile.Content = "";
+            RandomQuote();
+        }
+
         private void ClearStuff()
         {
-            updateVideoPath("");
+            UpdateVideoPath("");
             combo_CategoryComboBox.SelectedIndex = -1;
             combo_CatSubName.SelectedIndex = -1;
             txtb_Description.Clear();
@@ -354,9 +389,10 @@ namespace xPlatformLukma
             MediaPlayerStopVideo();
             UpdateVideoButtons(false);
             //Updates quote
-            //RandomQuote();
+            RandomQuote();
 
         }
+
         //Updates the video buttons
         private void UpdateVideoButtons(bool update)
         {
@@ -368,12 +404,23 @@ namespace xPlatformLukma
         }
 
         //updates the global variable and updates the view label
-        private void updateVideoPath(string path)
+        private void UpdateVideoPath(string path)
         {
             currentVideoPath = path;
             lbl_VideoFile.Content = path;
         }
 
+
+        private void RandomQuote()
+        {
+            var fileName = Path.Combine(configInfo.configDir, "quotes.txt");
+            var file = File.ReadLines(fileName).ToList();
+            int count = file.Count;
+            Random rnd = new();
+            int skip = rnd.Next(0, count);
+            string line = file.Skip(skip).First();
+            textBlock_quotesLabel.Text = line;
+        }
         //---------
         //---------End of Helper functions
         //---------
@@ -381,32 +428,7 @@ namespace xPlatformLukma
         //---------
         //---------Helper Events
         //---------
-        private void InitializeEventsAndButtons()
-        {
-            
-            
-            btn_Search.Click += SearchButton_Click;
-            combo_CategoryComboBox.IsEnabled = false;
-            combo_CategoryComboBox.SelectionChanged += CategoriesBox_SelectedIndexChanged;
-            combo_CatSubName.IsEnabled = false;
-            combo_CatSubName.SelectionChanged += NamesComboBox_SelectedIndexChanged;
-            txtb_Description.IsEnabled = false;
-
-            slider_VideoSlider.IsEnabled = false;
-            UpdateVideoButtons(false);
-            //combo_CategoryComboBox
-            //combo_CatSubName
-            //txtb_Description
-            //btn_Search
-            //btn_Save.Click += 
-            //btn_Clear.Click += 
-            //btn_VideoPlay.Click += 
-            //btn_VideoRewind.Click += 
-            //btn_VideoFF.Click += 
-            //btn_VideoRestart.Click += 
-
-        }
-
+        
         private async Task<string> ReturnSeachFile()
         {
             if (initVideoDirectory == null || !Directory.Exists(initVideoDirectory))
@@ -414,13 +436,17 @@ namespace xPlatformLukma
                 initVideoDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
 
-            List<string> extension = new List<string>() { "MP4", "mp4" };
-            FileDialogFilter myFilter = new FileDialogFilter();
+            List<string> extension = new() { "MP4", "mp4" };
+            FileDialogFilter myFilter = new()
+            {
+                Extensions = extension
+            };
 
-            myFilter.Extensions = extension;
-            List<FileDialogFilter> myFilters = new List<FileDialogFilter>();
-            myFilters.Add(myFilter);
-            var fileDlg = new OpenFileDialog()
+            List<FileDialogFilter> myFilters = new()
+            {
+                myFilter
+            };
+            OpenFileDialog fileDlg = new()
             {
                 Title = "Select video file",
                 AllowMultiple = false,
@@ -478,7 +504,6 @@ namespace xPlatformLukma
             
         }
 
-
         private void NamesComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -508,7 +533,7 @@ namespace xPlatformLukma
         {
             TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
             TimeSpan endTime = TimeSpan.FromMilliseconds(_mp.Length);
-
+            
             lbl_VideoCurrentTime.Content = currentTime.ToString(@"mm\:ss");
             lbl_VideoEndTime.Content = endTime.ToString(@"mm\:ss");
             
@@ -517,6 +542,43 @@ namespace xPlatformLukma
             slider_VideoSlider.Maximum = _mp.Length;
             slider_VideoSlider.Value = _mp.Time;
         }
+        private void DescriptionTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (txtb_Description.Text.Length > 0)
+            { btn_Save.IsEnabled = true; }
+            else
+            { btn_Save.IsEnabled = false; }
+        }
+
+        //
+        //---------App is closing, clean needs to happen
+        //
+        private void AppClosing(object sender, EventArgs e)
+        {
+            // Display a MsgBox asking the user if they really want to exit.
+            if (ListOfFiles.Count > 0)
+            {
+
+                MessageBoxManager.GetMessageBoxStandard("Warning", "That Already Exists",
+                    MsBox.Avalonia.Enums.ButtonEnum.OkCancel, MsBox.Avalonia.Enums.Icon.Warning,
+                    WindowStartupLocation.CenterOwner).ShowWindowDialogAsync(this);
+
+                /*if (MessageBox.Show(@"Videos still being converted: " + ListOfFiles.Count + "\nAre you sure you want to Exit", "Lukma",
+                   MessageBoxButtons.YesNo) == DialogResult.No)
+                {
+                    // Cancel the Closing event from closing the form.
+                    e.Cancel = true;
+                }
+                else
+                {
+                    _media?.Dispose();          //Checks if it's null and then runs Dispose
+                    _mp?.Dispose();
+                    _libVLC?.Dispose();
+                }*/
+            }
+
+        }
+
 
         //---------
         //---------Button Click Events
@@ -529,13 +591,151 @@ namespace xPlatformLukma
             if(sResult != "")
             {
                 combo_CategoryComboBox.IsEnabled = true;
-                updateVideoPath(sResult);
+                UpdateVideoPath(sResult);
                 PlayVideo(sResult);
             }
 
         }
+        private void ClearButton_Click(object sender, EventArgs e)
+        {
+            ClearStuff();
+        }
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
 
 
+
+
+        }
+
+        //
+        //-------Video button click events
+        //
+        private void VideoPlayPause_Click(object sender, EventArgs e)
+        {
+            if (_mp.IsPlaying)
+            {
+                ThreadPool.QueueUserWorkItem(_ => _mp.Pause());
+            }
+            else
+            {
+                ThreadPool.QueueUserWorkItem(_ => _mp.Play());
+            }
+        }
+
+        private void VideoRestart_Click(Object sender, EventArgs e)
+        {
+
+            if ( _mp.State != VLCState.Error )
+            {
+                _mp.Position = 0;
+            }
+        }
+        private void VideoRwd_Click(object sender, EventArgs e)
+        {
+            float vlc_currentPos = _mp.Position;
+            float vlc_newPos = vlc_currentPos - 0.05f;
+            if (vlc_newPos < 0)
+            {
+                vlc_newPos = 0;
+            }
+            // _mp.SetPosition(vlc_newPos);
+            _mp.Position = vlc_newPos;
+        }
+
+        private void VideoFwd_Click(object sender, EventArgs e)
+        {
+            float vlc_currentPos = _mp.Position;
+            float vlc_newPos = vlc_currentPos + 0.05f;
+            if (vlc_newPos > 1)
+            {
+                vlc_newPos = 1;
+            }
+            //_mp.SetPosition(vlc_newPos);
+            _mp.Position = vlc_newPos;
+        }
+
+        //
+        //-------Timer button click events
+        //
+        private void StartTimerButton_Click(object sender, EventArgs e)
+        {
+            timeset = Convert.ToInt32(cnt_TimerValue.Value);
+            int secondsEntered = timeset;
+            timer.SetTime(0, secondsEntered);
+            timer.Start();
+            timer.TimeChanged = Timer_TickChange;
+            cnt_TimerValue.IsEnabled = false;
+            timer.StepMs = 100;
+            btn_startTimer.IsVisible = false;
+            btn_addPoint.IsVisible = true;
+            btn_addPoint.IsEnabled = true;
+            btn_stopTimer.IsVisible = true;
+            btn_stopTimer.IsEnabled = true;
+            btn_resetTimer.IsEnabled = false;
+            //btn_startTimer
+            //btn_addPoint
+            //btn_stopTimer
+            //btn_resetTimer
+
+        }   //startbutton for timer and points counter
+                
+        private void ResetTimerButton_Click(Object sender, EventArgs e)
+        {
+            cnt_TimerValue.IsEnabled = true;
+            cnt_TimerValue.Value = timeset;
+            cnt_TimerValue.Background = Brushes.Black;
+            lbl_pointValue.Content = "0";
+            //btn_stopTimer.IsEnabled = true;
+            btn_addPoint.IsEnabled = false;
+            btn_addPoint.IsVisible = false;
+            lbl_pointValue.Content = "0";
+            btn_startTimer.IsVisible = true;
+            btn_startTimer.IsEnabled = true;
+            
+            counter = 0;
+        }
+       
+        private void StopTimerButton_Click(object sender, EventArgs e)
+        {
+            timer.Stop();
+            //btn_startTimer.IsVisible = true;
+            btn_startTimer.IsEnabled = true;
+            //cnt_TimerValue.IsEnabled = true;
+            //btn_addPoint.IsVisible = false;
+            btn_addPoint.IsEnabled = false;
+            //TimerPanel.BackColor = Color.Black;
+             
+            cnt_TimerValue.Background = Brushes.Black;
+            btn_stopTimer.IsEnabled = false;
+            btn_resetTimer.IsEnabled = true;
+
+        }
+        
+        private void Timer_TickChange()
+        {
+            cnt_TimerValue.Text = timer.TimeLeftMsStr;
+            if (cnt_TimerValue.Value == 0)
+            {
+                btn_addPoint.IsEnabled = false;
+                //secondsUpdown.Enabled = false;
+                btn_stopTimer.IsEnabled = false;
+                btn_resetTimer.IsEnabled = true;
+            }
+            if (cnt_TimerValue.Value == 5)
+            {
+                cnt_TimerValue.Background = Brushes.Red;
+            }
+        }
+
+        private void PointButton_Click(object sender, EventArgs e)  //increments the number of points while timer is running
+        {
+            ++counter; ;
+            string points = counter.ToString();
+            lbl_pointValue.Content = points;
+        }
+        
+        
 
         //---------
         //---------Menu Click Events
@@ -574,29 +774,32 @@ namespace xPlatformLukma
     //---------
 
     //
-    //---Timer Class
+    //---Timer Class and other functions specific to Timer
     //
-
-    /*public class CountdownTimer : IDisposable  //Defines timer
+    //------ Timer and Points functions
+    //
+    //
+    
+    public class CountdownTimer  
     {
         public Action TimeChanged;
         public Action CountDownFinished;
 
         public bool IsRunning => pointsTimer.IsEnabled;
 
-        public int StepMs
+        public double StepMs
         {
-            get => pointsTimer.Interval;
-            set => pointsTimer.Interval = value;
+            get => pointsTimer.Interval.TotalMilliseconds;
+            set => pointsTimer.Interval = TimeSpan.FromMilliseconds(value);
         }
         
         //
         //-----------Need to change this
         //
-        private readonly System.Windows.Forms.Timer pointsTimer = new System.Windows.Forms.Timer();
+        private readonly DispatcherTimer pointsTimer = new();
 
-        private DateTime _maxTime = new DateTime(1, 1, 1, 0, 0, 50);
-        private readonly DateTime _minTime = new DateTime(1, 1, 1, 0, 0, 0);
+        private DateTime _maxTime = new(1, 1, 1, 0, 0, 50);
+        private readonly DateTime _minTime = new(1, 1, 1, 0, 0, 0);
 
         public DateTime TimeLeft { get; private set; }
         private long TimeLeftMs => TimeLeft.Ticks / TimeSpan.TicksPerMillisecond;
@@ -605,9 +808,9 @@ namespace xPlatformLukma
         public string TimeLeftMsStr => TimeLeft.ToString("ss.f");
         private void TimerTick(object sender, EventArgs e)
         {
-            if (TimeLeftMs > pointsTimer.Interval)
+            if (TimeLeftMs > pointsTimer.Interval.TotalMilliseconds)
             {
-                TimeLeft = TimeLeft.AddMilliseconds(-pointsTimer.Interval);
+                TimeLeft = TimeLeft.AddMilliseconds(-pointsTimer.Interval.TotalMilliseconds);
                 TimeChanged?.Invoke();
             }
             else
@@ -662,8 +865,8 @@ namespace xPlatformLukma
             Reset();
             Start();
         }
-        public void Dispose() => pointsTimer.Dispose();
-    }*/
+        
+    }
 
     public struct ConfigStruct
     {
