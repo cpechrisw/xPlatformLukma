@@ -155,7 +155,7 @@ namespace xPlatformLukma
                     if (aLine.Length == 2)
                     {
                         string sParameter = aLine[0].Trim();
-                        string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
+                        string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray()).Trim();
                         sValue = sValue.Replace("\"", "");
                         
                         switch (sParameter)
@@ -318,16 +318,14 @@ namespace xPlatformLukma
                
                 MediaPlayerStopVideo();
                 _media = new Media(_libVLC, filename);
-                
-                //Video slider initialization
-                slider_VideoSlider.IsEnabled = true;
-                slider_VideoSlider.Minimum = 0;
-                slider_VideoSlider.Value = 0;
 
+                //Video slider initialization
+                                
                 _mp.Play(_media);
                 _mp.TimeChanged += MP_TimeChanged;
                 _mp.Mute = true;
                 _media?.Dispose();
+                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Background);
             }
             else
             {
@@ -341,8 +339,7 @@ namespace xPlatformLukma
             {
                 _mp.Stop();
                 _mp.TimeChanged -= MP_TimeChanged;
-                slider_VideoSlider.Value = 0;
-                slider_VideoSlider.IsEnabled = false;
+                                
                 //_mp?.Dispose();       //This is causing the popout
                 //_mp = new MediaPlayer(_libVLC);
                 //VideoViewer.MediaPlayer = _mp;
@@ -407,7 +404,7 @@ namespace xPlatformLukma
             btn_VideoRewind.IsEnabled = update;
             btn_VideoFF.IsEnabled = update;
             btn_VideoRestart.IsEnabled = update;
-
+            slider_VideoSlider.IsEnabled = update;
         }
 
         //updates the global variable and updates the view label
@@ -459,7 +456,16 @@ namespace xPlatformLukma
         public string GetPrimaryLogo()
         {
             string returnPath;
-            string videoQuality = combo_VideoQuality.SelectedValue.ToString();
+            string videoQuality;
+            if (combo_VideoQuality.IsEffectivelyVisible)
+            {
+                videoQuality = combo_VideoQuality.SelectedValue.ToString();
+            }
+            else
+            {
+                videoQuality = "480";
+            }
+
             if (configInfo.customLogos.ContainsKey("Primary"))
             {
                 returnPath = configInfo.customLogos["Primary"];
@@ -491,7 +497,15 @@ namespace xPlatformLukma
             string dateFolder = pickedDateTime.Day.ToString();
             string datePath = yearFolder + "\\" + monthFolder + "\\" + dateFolder;
 
-            string videoQuality = combo_VideoQuality.SelectedValue.ToString();
+            string videoQuality;
+            if (combo_VideoQuality.IsEffectivelyVisible)
+            {
+                videoQuality = combo_VideoQuality.SelectedValue.ToString();
+            }
+            else
+            {
+                videoQuality = "480";
+            }
             //Figure out which radiobutton is selected
             if (combo_CatSubName.SelectedValue.ToString() == "Rhythm")
             {
@@ -574,7 +588,7 @@ namespace xPlatformLukma
             {
                 SourcePath = newSourcePathFile,
                 UploadPath = newUploadPathFile,
-                Resolution = combo_VideoQuality.SelectedValue.ToString(),
+                Resolution = videoQuality,
                 SecondaryLogoPath = secondaryLogoPath,                                 //What is this really used for
                 FileCreated = DateTime.Now
             };
