@@ -1,20 +1,22 @@
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Media;
+using Avalonia.Threading;
 using MsBox.Avalonia;
+using LibVLCSharp.Avalonia;
+using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using LibVLCSharp.Shared;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using LibVLCSharp.Avalonia;
+using System.Text.RegularExpressions;
+using Microsoft.VisualBasic.FileIO;
 using System.Xml;
-using Avalonia.Threading;
 using System.Diagnostics.Metrics;
-
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace xPlatformLukma
 {
@@ -44,7 +46,7 @@ namespace xPlatformLukma
         public Media _media;
         private string initVideoDirectory;
         private string currentVideoPath;
-        private VideoView _videoViewer;
+        //private VideoView _videoViewer;
         //public Size vlc_oldVideoSize;
         //public Size vlc_oldFormSize;
         //public Point vlc_oldVideoLocation;
@@ -77,6 +79,11 @@ namespace xPlatformLukma
         public void LukmaStartup()
         {
             InitializeComponent();
+            
+            this.Closing += AppClosingTest;
+
+            
+
 
             //Screen related intializations
             int screenWidth = Screens.Primary.WorkingArea.Width;
@@ -200,7 +207,6 @@ namespace xPlatformLukma
             configInfo.PrivateTeamUploadTopFolder = Path.Combine(configInfo.convertedVideosTopDir, "privateteamuploadvideos");
         }
 
-
         //-----Reads the Category file
         private void ReadCategoryFiles()
         {
@@ -256,6 +262,7 @@ namespace xPlatformLukma
             Load_VideoQuality_comboBox();
             
         }
+
         private void Load_Category_ComboBox(Dictionary<string, string[]> myDictionary)                                   //Populate categories ComboBox
         {
             combo_CategoryComboBox.Items.Clear();
@@ -410,7 +417,6 @@ namespace xPlatformLukma
             lbl_VideoFile.Content = path;
         }
 
-
         private void RandomQuote()
         {
             var fileName = Path.Combine(configInfo.configDir, "quotes.txt");
@@ -421,6 +427,313 @@ namespace xPlatformLukma
             string line = file.Skip(skip).First();
             textBlock_quotesLabel.Text = line;
         }
+
+        //
+        //This will have to be redone to support setting secondary logos anywhere
+        //
+        public string GetSecondaryLogo()
+        {
+
+            string returnPath = "";
+            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
+            string nameCombo = combo_CatSubName.SelectedValue.ToString();
+            if (catCombo == "Teams" || catCombo == "Teams - Private")
+            {
+                //
+                if (configInfo.customLogos.ContainsKey(nameCombo))
+                {
+                    returnPath = configInfo.customLogos[nameCombo];
+                }
+            }
+            else
+            {
+                if (configInfo.customLogos.ContainsKey(catCombo))
+                {
+                    returnPath = configInfo.customLogos[catCombo];
+                }
+            }
+
+            return returnPath;
+        }
+
+        public string GetPrimaryLogo()
+        {
+            string returnPath;
+            string videoQuality = combo_VideoQuality.SelectedValue.ToString();
+            if (configInfo.customLogos.ContainsKey("Primary"))
+            {
+                returnPath = configInfo.customLogos["Primary"];
+            }
+            else if (videoQuality == "480")
+            {
+                returnPath = Path.Combine(configInfo.logoDir, "logo_480.png");
+            }
+            else
+            {
+                returnPath = Path.Combine(configInfo.logoDir, "logo_1080.png");
+            }
+
+            return returnPath;
+        }
+
+        private void SaveButtonHelper()
+        {
+            //Create variables to be used when creating unique filenames later 
+            string sourcePath;
+            string sourcePathFile; //Source path and file
+            string uploadPath;
+            string uploadPathFile;  //upload path and file
+
+            DateTime pickedDateTime = (DateTime)date_DatePicker1.SelectedDate;
+
+            string yearFolder = pickedDateTime.Year.ToString();
+            string monthFolder = pickedDateTime.Month.ToString();
+            string dateFolder = pickedDateTime.Day.ToString();
+            string datePath = yearFolder + "\\" + monthFolder + "\\" + dateFolder;
+
+            string videoQuality = combo_VideoQuality.SelectedValue.ToString();
+            //Figure out which radiobutton is selected
+            if (combo_CatSubName.SelectedValue.ToString() == "Rhythm")
+            {
+                videoQuality = "480";
+            }
+
+            string fileName = CreateFileName();          //append unique identifier, resolution
+            string originalFile = fileName + ".mp4";
+            fileName += "_" + videoQuality + ".mp4";
+
+            string tmpStartSourcePath;
+            string tmpStartUploadPath;
+
+            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
+            string nameCombo = combo_CatSubName.SelectedValue.ToString();
+            if (catCombo == "Teams")    //structure for teams is team-folder/year/month/date/draw-resolution.mp4 
+            {
+                tmpStartSourcePath = Path.Combine(configInfo.unconvertedVideoDir, nameCombo);     //Create teamPath
+                tmpStartUploadPath = Path.Combine(configInfo.TeamUploadTopFolder, nameCombo);    //Create teamUploadPath
+
+            }
+            else if (catCombo == "Teams - Private")    //structure for teams is team-folder/year/month/date/draw-resolution.mp4 
+            {
+                tmpStartSourcePath = Path.Combine(configInfo.unconvertedVideoDir, nameCombo);                //Create PrivateteamPath
+                tmpStartUploadPath = Path.Combine(configInfo.PrivateTeamUploadTopFolder, nameCombo);    //Create PrivateTeamUploadPath
+
+            }
+            else
+            {
+                tmpStartSourcePath = configInfo.unconvertedVideoDir;
+                tmpStartUploadPath = configInfo.generalCategoryDir;
+
+            }
+
+            sourcePath = Path.Combine(tmpStartSourcePath, datePath);
+            sourcePathFile = Path.Combine(sourcePath, originalFile);
+
+            uploadPath = Path.Combine(tmpStartUploadPath, datePath);
+            uploadPathFile = Path.Combine(uploadPath, fileName);
+
+            Directory.CreateDirectory(sourcePath);
+            Directory.CreateDirectory(uploadPath);
+
+            string fileNameOnly = Path.GetFileNameWithoutExtension(sourcePathFile);
+            string UploadNameOnly = Path.GetFileNameWithoutExtension(uploadPathFile);
+            string extension = Path.GetExtension(sourcePathFile);
+            string newSourcePathFile = sourcePathFile;
+            string newUploadPathFile = uploadPathFile;
+
+            //Make sure the filename is unique
+            int count = 1;      //int used to increment filename when duplicates are created
+            while (File.Exists(newSourcePathFile))
+            {
+                string tempFileName = string.Format("{0}({1})", fileNameOnly, count);
+                newSourcePathFile = Path.Combine(sourcePath, tempFileName + extension);
+
+                string tempUploadName = string.Format("{0}({1})", UploadNameOnly, count);
+                newUploadPathFile = Path.Combine(uploadPath, tempUploadName + extension);
+                count++;
+            }
+
+            try
+            {
+                
+                //FileSystem.CopyFile(OpenFileDialog1.FileName, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
+                FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
+
+                ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile));
+
+            }
+            catch (Exception ex)
+            {
+                Console.Write("During Save and before convert:" + ex.Message);
+            }       //copy video from camera to HDD
+
+            string secondaryLogoPath = GetSecondaryLogo();
+
+            //these next variables are named after my friend Bill, who introduced me to skydiving:
+            BillvideoData = new VideoData
+            {
+                SourcePath = newSourcePathFile,
+                UploadPath = newUploadPathFile,
+                Resolution = combo_VideoQuality.SelectedValue.ToString(),
+                SecondaryLogoPath = secondaryLogoPath,                                 //What is this really used for
+                FileCreated = DateTime.Now
+            };
+
+            ListOfFiles ??= new List<VideoData>();
+            ListOfFiles.Add(BillvideoData);
+            ClearStuff();
+            if (!FlagConverting)
+            {
+                FlagConverting = true;
+                ConvertVideo();
+            }
+        }
+
+        private async void ConvertVideo()       //method to convert video
+        {
+            if (ListOfFiles == null || ListOfFiles.Count == 0)
+            {
+                FlagConverting = false;
+                return;
+            }  //exit if list is empty
+            videoDataConverting = new VideoData();    //creates class for this instance
+            DateTime OldestFile = DateTime.Now;     //instantiates OldestFile variable
+
+            foreach (VideoData thisfile in ListOfFiles)
+            {
+                if (thisfile.FileCreated < OldestFile) { videoDataConverting = thisfile; }
+            }   //find oldest file to convert
+
+
+            string logo1 = GetPrimaryLogo();
+
+            Task converter = Task.Run(() =>                   //convert video to lower res
+            {
+
+                //   Building the argument list
+                //          Places the images in the center
+                string ffmpegArgs = "-i \"" + videoDataConverting.SourcePath + "\" ";
+
+                if (videoDataConverting.SecondaryLogoPath != "")
+                {
+                    string logo2 = videoDataConverting.SecondaryLogoPath;
+                    ffmpegArgs = ffmpegArgs +
+                    "-i \"" + logo1 + "\" " +
+                        "-i \"" + logo2 + "\" " +
+                        "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+                }
+                else
+                {
+                    ffmpegArgs = ffmpegArgs +
+                        "-i \"" + logo1 + "\" " +
+                        "-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";
+                }
+                ffmpegArgs = ffmpegArgs +
+                    "-s hd" + videoDataConverting.Resolution + " " +
+                    "-c:v libx264 " +
+                    "-crf 23 " +
+                    "-c:a aac " +
+                    "-strict -2 " +
+                    "-an \"" + videoDataConverting.UploadPath + "\"";
+
+
+                //End of ffmpeg arguments creation
+                ffmpeg = new Process
+                {
+                    StartInfo =
+                         {
+                             FileName = configInfo.ffmpegLocation,
+                             Arguments = ffmpegArgs,
+                             UseShellExecute = false,
+                             RedirectStandardOutput = true,
+                             RedirectStandardError = true,
+                             CreateNoWindow = true,
+                             WorkingDirectory = configInfo.workingDirectoryVar
+                         },
+                    EnableRaisingEvents = true
+                };
+
+                ffmpeg.Start();
+
+                //for debuging purposes
+                //string stdout = ffmpeg.StandardOutput.ReadToEnd();
+                //string stderr = ffmpeg.StandardError.ReadToEnd();
+                try
+                {
+                    ShowPercentComplete();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("During show complete: " + ex.Message);
+                }
+
+                ListOfFiles.Remove(videoDataConverting);
+                ffmpeg.Dispose();       //Not sure if this is really needed
+                ConvertVideo();
+            });
+            await converter;
+        }
+
+        private void ShowPercentComplete()
+        {
+            //Calculates percent complete
+            string line, current_duration, duration = "";
+            StreamReader reader = ffmpeg.StandardError;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (!string.IsNullOrEmpty(line))
+                {
+                    if (line.Contains("Duration") && line.Contains("bitrate") && line.Contains("start") && line.Contains("kb/s"))
+                    {
+                        int startPos = line.LastIndexOf("Duration: ") + "Duration: ".Length + 1;
+                        int length = line.IndexOf(", start:") - startPos;
+                        string sub = line.Substring(startPos, length);
+                        duration = sub;
+                        //Console.WriteLine(duration);       //for Debugging
+                    }
+                    if (line.Contains("frame=") && line.Contains("size=") && line.Contains("time="))
+                    {
+                        int startPos = line.LastIndexOf("time=") + "Time=".Length + 1;
+                        int length = line.IndexOf(" bitrate=") - startPos;
+                        string sub = line.Substring(startPos, length);
+                        current_duration = sub;
+                        //Console.WriteLine(current_duration);       //for Debugging
+                        percent = Convert.ToInt32(Math.Round(TimeSpan.Parse(duration).TotalSeconds)) == 0 ? 0 :
+                            Convert.ToInt32(Math.Round((TimeSpan.Parse(current_duration).TotalSeconds * 100) / TimeSpan.Parse(duration).TotalSeconds, 5));
+
+                        //Console.WriteLine("Conversion complete: " + percent);       //for Debugging
+                    }
+                }
+            }
+        }
+
+        //
+        //Creates the filname for the video
+        //
+        public string CreateFileName()
+        {
+            string newFileName;
+            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
+            string nameCombo = combo_CatSubName.ToString();
+            string dirtyFileName = "";
+            if (catCombo == "Teams" || catCombo == "Teams - Private")  //shows dropbox for draw
+            {
+                dirtyFileName += txtb_Description.Text;
+            }
+            else
+            {
+                if (nameCombo != "")
+                {
+                    dirtyFileName += nameCombo + " - ";   //starts filename with name from combo_CatSubName.Text so nameTheFile adds the draw after the person or team named there
+                }
+                //newFileName += txtb_Description.Text.Replace("\\", "-");
+                dirtyFileName += txtb_Description.Text;
+            }
+            newFileName = Regex.Replace(dirtyFileName, @"([^a-zA-Z0-9_]|^\s)", "-");
+
+            return newFileName;
+        }
+
         //---------
         //---------End of Helper functions
         //---------
@@ -428,7 +741,7 @@ namespace xPlatformLukma
         //---------
         //---------Helper Events
         //---------
-        
+
         private async Task<string> ReturnSeachFile()
         {
             if (initVideoDirectory == null || !Directory.Exists(initVideoDirectory))
@@ -529,6 +842,7 @@ namespace xPlatformLukma
         {
             Dispatcher.UIThread.Post(() => UpdateVideoTime(), DispatcherPriority.Background);
         }
+
         private async Task UpdateVideoTime()
         {
             TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
@@ -542,7 +856,7 @@ namespace xPlatformLukma
             slider_VideoSlider.Maximum = _mp.Length;
             slider_VideoSlider.Value = _mp.Time;
         }
-        private void DescriptionTextBox_TextChanged(object sender, EventArgs e)
+        private async void DescriptionTextBox_TextChanged(object sender, EventArgs e)
         {
             if (txtb_Description.Text.Length > 0)
             { btn_Save.IsEnabled = true; }
@@ -553,32 +867,45 @@ namespace xPlatformLukma
         //
         //---------App is closing, clean needs to happen
         //
-        private void AppClosing(object sender, EventArgs e)
+        private async void AppClosingTest(object sender, WindowClosingEventArgs e)
         {
             // Display a MsgBox asking the user if they really want to exit.
+
             if (ListOfFiles.Count > 0)
             {
+                var box = MessageBoxManager.GetMessageBoxStandard("Exiting", @"Videos still being converted: " + ListOfFiles.Count + "\nAre you sure you want to Exit",
+                    MsBox.Avalonia.Enums.ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question,
+                    WindowStartupLocation.CenterOwner);
 
-                MessageBoxManager.GetMessageBoxStandard("Warning", "That Already Exists",
-                    MsBox.Avalonia.Enums.ButtonEnum.OkCancel, MsBox.Avalonia.Enums.Icon.Warning,
-                    WindowStartupLocation.CenterOwner).ShowWindowDialogAsync(this);
-
-                /*if (MessageBox.Show(@"Videos still being converted: " + ListOfFiles.Count + "\nAre you sure you want to Exit", "Lukma",
-                   MessageBoxButtons.YesNo) == DialogResult.No)
-                {
-                    // Cancel the Closing event from closing the form.
-                    e.Cancel = true;
-                }
-                else
+                e.Cancel = true;
+            
+                if ( await box.ShowWindowAsync() == MsBox.Avalonia.Enums.ButtonResult.Yes)
                 {
                     _media?.Dispose();          //Checks if it's null and then runs Dispose
                     _mp?.Dispose();
                     _libVLC?.Dispose();
-                }*/
+                    if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
+                }
             }
 
         }
 
+
+
+        private void PercentCompleteTracker(object sender, EventArgs e)
+        {
+            if (percent > 0)
+            {
+                lbl_progressLabel.IsVisible = true;
+                string fileShow = Path.GetFileNameWithoutExtension(videoDataConverting.UploadPath);
+                lbl_progressLabel.Content = fileShow + " " + percent.ToString() + "% (1 of " + ListOfFiles.Count + " )";
+            }
+            if (lbl_progressLabel.Content.ToString().Contains("100") == true || ListOfFiles.Count == 0)
+            {
+                lbl_progressLabel.Content = "";
+                lbl_progressLabel.IsVisible = false;
+            }
+        }
 
         //---------
         //---------Button Click Events
@@ -602,11 +929,10 @@ namespace xPlatformLukma
         }
         private void SaveButton_Click(object sender, EventArgs e)
         {
-
-
-
-
+            SaveButtonHelper();
         }
+        //Gets the Path of the secondary logo, if it exists
+        
 
         //
         //-------Video button click events
