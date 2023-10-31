@@ -1103,7 +1103,7 @@ namespace xPlatformLukma
         }
         public void Menu_LogoClick()
         {
-            _logoWindow = new();
+            _logoWindow = new(configInfo, categoriesDic);
             _logoWindow.Show();
         }
 

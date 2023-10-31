@@ -28,11 +28,11 @@
 			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
 				<TextBlock Text="Applies Logo" HorizontalAlignment="Center"/>
 				<TextBlock Text="Edits To:" HorizontalAlignment="Center"/>
-				<RadioButton Content="Primary" IsChecked="True"/>
-				<RadioButton Content="Category"/>
-				<RadioButton Content="Teams"/>
-				<RadioButton Content="Teams - Private"/>
-				<DropDownButton Width="150" IsEnabled="False"/>
+				<RadioButton Name="rb_Primary" Content="Primary" IsChecked="False"/>
+				<RadioButton Name="rb_Category" Content="Category"/>
+				<RadioButton Name="rb_Teams" Content="Teams"/>
+				<RadioButton Name="rb_TeamsPrivate" Content="Teams - Private"/>
+				<ComboBox Name="comboBox_Name" Width="150" IsEnabled="False"/>
 				
 			</StackPanel>
 			<!--Current Logo View and label-->
@@ -43,9 +43,9 @@
 			</StackPanel>
 			<!--Buttons-->
 			<StackPanel Grid.Column="2" Orientation="Vertical" Margin="0,0,10,0">
-				<Button Content="Search" />
-				<Button Content="Apply" />
-				<Button Content="Remove" />
+				<Button Name="btn_Search" Content="Search" />
+				<Button Name="btn_Apply" Content="Apply" />
+				<Button Name="btn_Remove" Content="Remove" />
 			</StackPanel>
 			<!--New Logo View and label-->
 			<StackPanel Grid.Column="3" Orientation="Vertical">
@@ -56,8 +56,8 @@
 			
 			
 		</Grid>
-		<Label Content="Applies to all Categories Except teams"/>
-		<Button Content="Close" Margin="125,0,0,0"/>
+		<Label Name="lbl_additionalInfo" Content="Applies to all Categories Except teams"/>
+		<Button Name="btn_Close" Content="Close" Margin="125,0,0,0"/>
 		
 		
 		
