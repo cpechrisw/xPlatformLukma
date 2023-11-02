@@ -1,8 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-
-using Avalonia.Markup.Xaml;
-using LibVLCSharp.Shared;
 using System;
 using System.IO;
 using System.Linq;

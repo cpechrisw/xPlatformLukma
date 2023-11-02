@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using LibVLCSharp.Shared;
 using System;
@@ -115,7 +117,6 @@ public partial class LogoWindow : Window
 
     }
 
-    //-------------NEEDS TO BE UPDATED--------------
     //Checks to see if the custom logo is already defined, updates or adds it and then resets the images
     private void CheckAndAddNewLogo(string sCat, string logoLocation)
     {
@@ -129,8 +130,7 @@ public partial class LogoWindow : Window
             myConfigInfo.customLogos.Add(sCat, logoLocation);
             AppendCustomLogosFile(sCat, logoLocation);
         }
-        //currentLogoBox.Image = null;
-        //currentLogoBox.ImageLocation = logoLocation;
+        SetImage(image_CurrentLogo, logoLocation);
         lbl_additionalInfo.Content = logoLocation;
 
         ClearNewLogoBox();
@@ -149,80 +149,73 @@ public partial class LogoWindow : Window
         }
     }
 
-    //-------------NEEDS TO BE UPDATED--------------
     private void ClearCurrentLogoBox()
     {
-        //currentLogoBox.Image = null;
-        //currentLogoBox.ImageLocation = null;
-
+        SetImage(image_CurrentLogo, null);
     }
-    //-------------NEEDS TO BE UPDATED--------------
+    
     private void ClearNewLogoBox()
     {
-        /*newLogoBox.Paint -= new PaintEventHandler(this.NewLogoBox_PaintError);
-        newLogoBox.Image = null;
-        newLogoBox.ImageLocation = null;*/
+        SetImage(image_NewLogo, null);
     }
 
-
-    //
-    //---------Helper Events
-    //
     private void InitializeEvents()
     {
-       
+
         btn_Close.Click += CloseButton_Click;
         btn_Search.Click += SearchButton_Click;
         btn_Apply.Click += ApplyButton_Click;
         btn_Remove.Click += RemoveButton_Click;
-        
+
         comboBox_Name.SelectionChanged += NameComboBox_SelectedIndexChange;
         rb_Primary.IsCheckedChanged += RBPrimaryLogo_CheckedChanged;
         rb_TeamsPrivate.IsCheckedChanged += RBPrivateTeam_CheckedChanged;
         rb_Category.IsCheckedChanged += RBCategory_CheckedChanged;
         rb_Teams.IsCheckedChanged += RBTeam_CheckedChanged;
     }
-    
-    //-------------NEEDS TO BE UPDATED--------------
+
+
+    //
+    //---------Helper Events
+    //
+
+    private void SetImage(Image? imageControl, string? sImageName)
+    {
+        Bitmap img = null;
+        if (sImageName != null)
+        {
+            img = new Bitmap(sImageName);
+        }
+        imageControl.Source = img;
+    }
+
     private void NameComboBox_SelectedIndexChange(object sender, EventArgs e)
     {
-        string sComboName = comboBox_Name.SelectedValue.ToString();
-        /*currentLogoBox.Image = null;
-        currentLogoBox.ImageLocation = null;*/
-        lbl_additionalInfo.Content = "Applies to only individual teams";
-        if (myConfigInfo.customLogos.ContainsKey(sComboName))
+        if(comboBox_Name.SelectedValue != null)
         {
-            string curFile = myConfigInfo.customLogos[sComboName].ToString();
-            if (File.Exists(curFile))
-            {
-                lbl_additionalInfo.Content = curFile;
-                /*currentLogoBox.ImageLocation = curFile;*/
-            }
-        }
-        Enable_SearchButton(this, new EventArgs());
-        Enable_ApplyButton(this, new EventArgs());
-        Enable_RemoveButton(this, new EventArgs());
-
-    }
-
-    private void RBTeam_CheckedChanged(object sender, EventArgs e)
-    {
-        comboBox_Name.IsEnabled = true;
-        comboBox_Name.SelectedValue = null;
-        if (rb_Teams.IsChecked == true)
-        {
+            string sComboName = comboBox_Name.SelectedValue.ToString();
             ClearCurrentLogoBox();
-            string comboName = "Teams";
             lbl_additionalInfo.Content = "Applies to only individual teams";
-            Load_ComboBox(comboName);
+            if (myConfigInfo.customLogos.ContainsKey(sComboName))
+            {
+                string curFile = myConfigInfo.customLogos[sComboName].ToString();
+                if (File.Exists(curFile))
+                {
+                    lbl_additionalInfo.Content = curFile;
+                    SetImage(image_CurrentLogo, curFile);
+
+                }
+            }
+            Enable_SearchButton(this, new EventArgs());
+            Enable_ApplyButton(this, new EventArgs());
+            Enable_RemoveButton(this, new EventArgs());
         }
+        
 
     }
-    //-------------NEEDS TO BE UPDATED--------------
+    
     private void RBCategory_CheckedChanged(object sender, EventArgs e)
     {
-        comboBox_Name.IsEnabled = false;
-        comboBox_Name.SelectedValue = null;
         if (rb_Category.IsChecked == true)
         {
             //string comboName = "Category";
@@ -230,11 +223,11 @@ public partial class LogoWindow : Window
             lbl_additionalInfo.Content = "Applies to all Categories except Teams/Private Teams";
             string catName = "Category";
             comboBox_Name.Items.Clear();
+            comboBox_Name.IsEnabled = false;
             if (myConfigInfo.customLogos.ContainsKey(catName))
             {
                 string tmpString = myConfigInfo.customLogos[catName];
-                /*currentLogoBox.Image = null;
-                currentLogoBox.ImageLocation = tmpString;*/
+                SetImage(image_CurrentLogo, tmpString);
             }
             Enable_SearchButton(this, new EventArgs());
             Enable_ApplyButton(this, new EventArgs());
@@ -242,36 +235,66 @@ public partial class LogoWindow : Window
 
         }
 
+    }
+    private void RBTeam_CheckedChanged(object sender, EventArgs e)
+    {
+
+        comboBox_Name.SelectedValue = null;
+        if (rb_Teams.IsChecked == true || rb_TeamsPrivate.IsChecked == true)
+        {
+            comboBox_Name.IsEnabled = true;
+            if (rb_Teams.IsChecked == true)
+            {
+                ClearCurrentLogoBox();
+                string comboName = "Teams";
+                lbl_additionalInfo.Content = "Applies to only individual teams";
+                Load_ComboBox(comboName);
+            }
+        }
+        else
+        {
+            comboBox_Name.IsEnabled = false;
+        }
 
     }
+
     private void RBPrivateTeam_CheckedChanged(object sender, EventArgs e)
     {
-        comboBox_Name.IsEnabled = true;
         comboBox_Name.SelectedValue = null;
-        if (rb_TeamsPrivate.IsChecked == true)
+        if (rb_Teams.IsChecked == true || rb_TeamsPrivate.IsChecked == true)
         {
-            ClearCurrentLogoBox();
-            string comboName = "Teams - Private";
-            lbl_additionalInfo.Content = "Applies to only individual teams";
-            Load_ComboBox(comboName);
+            comboBox_Name.IsEnabled = true;
+            if (rb_TeamsPrivate.IsChecked == true)
+            {
+                ClearCurrentLogoBox();
+                string comboName = "Teams - Private";
+                lbl_additionalInfo.Content = "Applies to only individual teams";
+                Load_ComboBox(comboName);
+            }
         }
+        else
+        {
+            comboBox_Name.IsEnabled = false;
+        }
+        
+            
+        
     }
 
     private void RBPrimaryLogo_CheckedChanged(object sender, EventArgs e)
     {
-        comboBox_Name.IsEnabled = false;
-        comboBox_Name.SelectedValue = null;
         if (rb_Primary.IsChecked == true)
         {
+            //comboBox_Name.SelectedValue = null;
+            comboBox_Name.Items.Clear();
+            comboBox_Name.IsEnabled = false;
             lbl_additionalInfo.Content = "Applies to ALL videos";
             string catName = "Primary";
-            comboBox_Name.Items.Clear();
+            
             string tmpString;
             if (myConfigInfo.customLogos.ContainsKey(catName))
             {
                 tmpString = myConfigInfo.customLogos[catName];
-                /*currentLogoBox.Image = null;
-                currentLogoBox.ImageLocation = tmpString;*/
             }
             else
             {
@@ -279,22 +302,15 @@ public partial class LogoWindow : Window
                 CheckAndAddNewLogo(catName, tmpString);
             }
             lbl_additionalInfo.Content = tmpString;
+            SetImage(image_CurrentLogo, tmpString);
             Enable_SearchButton(this, new EventArgs());
             Enable_ApplyButton(this, new EventArgs());
         }
     }
-
-    //Redo this and throw an error message box
-    private void NewLogoBox_PaintError(object sender, EventArgs e)
-    {
-
         
-    }
-    //-------------NEEDS TO BE UPDATED--------------
     private void Enable_ApplyButton(object sender, EventArgs e) 
     {
-        //if (newLogoBox.ImageLocation != null)
-        if(lbl_additionalInfo.Content.ToString().Contains(".png"))
+        if (image_NewLogo.Source != null)
         {
             btn_Apply.IsEnabled = true;
         }
@@ -303,8 +319,7 @@ public partial class LogoWindow : Window
     //-------------NEEDS TO BE UPDATED--------------
     private void Enable_RemoveButton(object sender, EventArgs e) 
     {
-        //if (currentLogoBox.ImageLocation != null)
-        if (lbl_additionalInfo.Content.ToString().Contains(".png"))
+        if (image_CurrentLogo.Source != null)
         {
             btn_Remove.IsEnabled = true;
         }
@@ -364,24 +379,22 @@ public partial class LogoWindow : Window
     }
 
 
-    //-------------NEEDS TO BE UPDATED TO SHOW IMAGE SELECTED--------------
     private async void SearchButton_Click(object sender, EventArgs e)        //Logo File Selection Button
     {
         string sResult = await ReturnSeachFile();
         if (sResult != "")
         {
             lbl_additionalInfo.Content = sResult;
-            //Apply new logo
+            SetImage(image_NewLogo, sResult);
             Enable_ApplyButton(this, new EventArgs());
 
         }
     }
 
-    //-------------NEEDS TO BE UPDATED--------------
     private void ApplyButton_Click(object sender, EventArgs e)
     {
         string sComboName;
-        string imageLocation = lbl_additionalInfo.Content.ToString();//newLogoBox.ImageLocation;
+        string imageLocation = lbl_additionalInfo.Content.ToString();
 
         if ((bool)rb_Primary.IsChecked)
         {
@@ -402,12 +415,13 @@ public partial class LogoWindow : Window
             }
         }
         lbl_additionalInfo.Content = imageLocation;
+        SetImage(image_CurrentLogo, imageLocation);
+        ClearNewLogoBox();
         Enable_ApplyButton(this, new EventArgs());
         Enable_RemoveButton(this, new EventArgs());
 
     }
 
-    //-------------NEEDS TO BE UPDATED--------------
     private void RemoveButton_Click(object sender, EventArgs e)
     {
         string sComboName;
@@ -425,9 +439,7 @@ public partial class LogoWindow : Window
                 myConfigInfo.customLogos.Remove(sComboName);
                 ReWriteCustomLogosFile();
             }
-
-            /*currentLogoBox.Image = null;
-            currentLogoBox.ImageLocation = null;*/
+            ClearCurrentLogoBox();
             Enable_ApplyButton(this, new EventArgs());
             Enable_RemoveButton(this, new EventArgs());
 
@@ -435,16 +447,14 @@ public partial class LogoWindow : Window
         else if ((bool)rb_TeamsPrivate.IsChecked || (bool)rb_Teams.IsChecked)
         {
             sComboName = comboBox_Name.SelectedValue.ToString();
-            if (sComboName.Length > 0 /*&& currentLogoBox.ImageLocation != null*/)
+            if (sComboName.Length > 0 && image_CurrentLogo.Source != null)
             {
                 if (myConfigInfo.customLogos.ContainsKey(sComboName))
                 {
                     myConfigInfo.customLogos.Remove(sComboName);
                     ReWriteCustomLogosFile();
                 }
-
-                /*currentLogoBox.Image = null;
-                currentLogoBox.ImageLocation = null;*/
+                ClearCurrentLogoBox();
                 lbl_additionalInfo.Content = "Applies to only individual teams";
                 Enable_ApplyButton(this, new EventArgs());
                 Enable_RemoveButton(this, new EventArgs());

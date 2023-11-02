@@ -37,7 +37,17 @@
 			</StackPanel>
 			<!--Current Logo View and label-->
 			<StackPanel Grid.Column="1" Orientation="Vertical" Margin="0,0,10,0">
-				<Rectangle Height="200" Width="200" Fill="Black"></Rectangle>
+				
+				<Border BorderThickness="1" Height="200" Width="200" BorderBrush="Black">
+					<Border.Background>
+						<ImageBrush Stretch="UniformToFill" Source="/Assets/SDC2.jpg"/>
+					</Border.Background>
+					<Image Name="image_CurrentLogo"
+						   Stretch="Uniform"
+						   HorizontalAlignment="Center"
+						   VerticalAlignment="Center"/>				
+				</Border>
+				
 				<Label Content="Current Logo" HorizontalAlignment="Center"/>
 
 			</StackPanel>
@@ -49,7 +59,15 @@
 			</StackPanel>
 			<!--New Logo View and label-->
 			<StackPanel Grid.Column="3" Orientation="Vertical">
-				<Rectangle Height="200" Width="200" Fill="Black"></Rectangle>
+				<Border BorderThickness="1" Height="200" Width="200" BorderBrush="Black">
+					<Border.Background>
+						<ImageBrush Stretch="UniformToFill" Source="/Assets/SDC2.jpg"/>
+					</Border.Background>
+					<Image Name="image_NewLogo"
+						   Stretch="Uniform"
+						   HorizontalAlignment="Center"
+						   VerticalAlignment="Center"/>
+				</Border>
 				<Label Content="New Logo" HorizontalAlignment="Center"/>
 			</StackPanel>
 			
