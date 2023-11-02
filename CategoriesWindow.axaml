@@ -8,7 +8,8 @@
         Title="Categories and Names"
 		RequestedThemeVariant="Dark"
 		Background="#717480"
-		CanResize="False">
+		CanResize="False"
+		Icon="/Assets/lukma_outlined.ico">
 
 	<Window.Styles>
 		<Style Selector="ListBoxItem">

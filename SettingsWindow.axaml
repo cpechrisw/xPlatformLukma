@@ -12,7 +12,8 @@
         Title="Settings"
 		RequestedThemeVariant="Dark"
 		Background="#717480"
-		CanResize="True">
+		CanResize="True"
+		Icon="/Assets/lukma_outlined.ico">
 
 	<Window.Styles>
 		<Style Selector="TextBlock">

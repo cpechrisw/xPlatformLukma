@@ -10,9 +10,9 @@
         x:Class="xPlatformLukma.MainWindow"
 		x:Name="xMainPage"
 		RequestedThemeVariant="Dark"
-        Title="Lukma">
-	<!--xmlns:controls="using:AvaVLCWindow.Views"-->
-	<!--MinHeight="800" MinWidth="1500"-->
+        Title="Lukma"
+		Icon="/Assets/lukma_black.ico">
+	
 	<!--Shared Menu Definition-->
 	<Window.Resources>
 		<MenuFlyout x:Key="SharedMenuFlyout" Placement="BottomEdgeAlignedLeft" >
