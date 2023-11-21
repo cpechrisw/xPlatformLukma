@@ -17,6 +17,8 @@ using Microsoft.VisualBasic.FileIO;
 using System.Xml;
 using System.Diagnostics.Metrics;
 using Avalonia.Controls.ApplicationLifetimes;
+using System.ComponentModel;
+using Avalonia.Controls.Primitives;
 
 namespace xPlatformLukma
 {
@@ -323,6 +325,7 @@ namespace xPlatformLukma
                                 
                 _mp.Play(_media);
                 _mp.TimeChanged += MP_TimeChanged;
+                slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Background);
@@ -339,7 +342,8 @@ namespace xPlatformLukma
             {
                 _mp.Stop();
                 _mp.TimeChanged -= MP_TimeChanged;
-                                
+                slider_VideoSlider.ValueChanged -= SL_TimeChanged;
+
                 //_mp?.Dispose();       //This is causing the popout
                 //_mp = new MediaPlayer(_libVLC);
                 //VideoViewer.MediaPlayer = _mp;
@@ -851,24 +855,38 @@ namespace xPlatformLukma
                 }
             }
         }
-         
-        private void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
+
+        private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            Dispatcher.UIThread.Post(() => UpdateVideoTime(), DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(() => UpdateTimerFromSlider(e), DispatcherPriority.Background);
+        }
+        
+        private async Task UpdateTimerFromSlider(RangeBaseValueChangedEventArgs e)
+        {
+            _mp.Time = (long)e.NewValue;
+            //_mp.Time =(long)slider_VideoSlider.Value;
         }
 
-        private async Task UpdateVideoTime()
+        private void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
+        {
+            Dispatcher.UIThread.Post(() => UpdateTimeLabelsFromVideo(), DispatcherPriority.Background);
+        }
+
+        private async Task UpdateTimeLabelsFromVideo()
         {
             TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
             TimeSpan endTime = TimeSpan.FromMilliseconds(_mp.Length);
             
             lbl_VideoCurrentTime.Content = currentTime.ToString(@"mm\:ss");
             lbl_VideoEndTime.Content = endTime.ToString(@"mm\:ss");
-            
+
             //Update Slider bar
+            slider_VideoSlider.ValueChanged -= SL_TimeChanged;
             slider_VideoSlider.IsEnabled = true;
             slider_VideoSlider.Maximum = _mp.Length;
             slider_VideoSlider.Value = _mp.Time;
+            slider_VideoSlider.ValueChanged += SL_TimeChanged;
+
         }
         private async void DescriptionTextBox_TextChanged(object sender, EventArgs e)
         {

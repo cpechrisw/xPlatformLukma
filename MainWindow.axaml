@@ -67,8 +67,9 @@
 				<!--Bottom Sliders and buttons-->
 				<StackPanel Grid.Row="1" Orientation="Vertical" Background="#717480" >
 					
-					<Slider Name="slider_VideoSlider" Value="0" HorizontalAlignment="Stretch" 
-							MinWidth="500" TickPlacement="BottomRight" Margin="10,0,10,0"></Slider>
+					<Slider Name="slider_VideoSlider" Value="0" 
+							HorizontalAlignment="Stretch" MinWidth="500" TickPlacement="BottomRight"
+							Margin="10,0,10,0"></Slider>
 
 					<Panel Name="pnl_videoTimeLabels">
 						<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto," Margin="10,0,25,5">
