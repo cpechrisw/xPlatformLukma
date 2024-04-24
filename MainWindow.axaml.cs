@@ -1,9 +1,9 @@
 using Avalonia.Controls;
-using Avalonia.Platform;
+//using Avalonia.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 using MsBox.Avalonia;
-using LibVLCSharp.Avalonia;
+//using LibVLCSharp.Avalonia;
 using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
@@ -14,11 +14,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic.FileIO;
-using System.Xml;
-using System.Diagnostics.Metrics;
 using Avalonia.Controls.ApplicationLifetimes;
-using System.ComponentModel;
 using Avalonia.Controls.Primitives;
+using System.Runtime.InteropServices;
 
 namespace xPlatformLukma
 {
@@ -30,8 +28,10 @@ namespace xPlatformLukma
         private SettingsWindow _settingsWindow;
         private LogoWindow _logoWindow;
         private CategoriesWindow _categoriesWindow;
-
-        //----used in ShowPercentComplete
+        private bool winPlatform;            //1 if windows, 0 if not windows
+        
+        //----used in ShowPercentComplete when files are being converted
+        private DispatcherTimer completionTimer;
         int percent;
 
         //----used in ConvertVideo
@@ -49,18 +49,15 @@ namespace xPlatformLukma
         private string initVideoDirectory;
         private string currentVideoPath;
         //private VideoView _videoViewer;
-        //public Size vlc_oldVideoSize;
-        //public Size vlc_oldFormSize;
-        //public Point vlc_oldVideoLocation;
-
+        
         //----used in ReadConfig
         ConfigStruct configInfo;    //Structure to contain all config info
-        Dictionary<string, string[]> categoriesDic;    //Variable for storing categories and sub categories
+        SortedDictionary<string, string[]> categoriesDic;    //Variable for storing categories and sub categories
 
         //----Points and Timer variables
         readonly CountdownTimer timer = new();
         int counter = 0;    //Keeps track of the points
-        int timeset = 10;   //Keeps track of the initial state of timer
+        int timeset = 35;   //Keeps track of the initial state of timer
 
 
         //-----End of Global Variables
@@ -75,26 +72,21 @@ namespace xPlatformLukma
         }
 
         //---------
-        //---------Helper functions
+        //--------- functions
         //---------
 
         public void LukmaStartup()
         {
             InitializeComponent();
-            
+            winPlatform = IsPlatformWindows();
             this.Closing += AppClosingTest;
-
-            
-
-
+           
             //Screen related intializations
             int screenWidth = Screens.Primary.WorkingArea.Width;
             int screenHeight = Screens.Primary.WorkingArea.Height;
             lbl_ScreenRes.Content = "Monitor Resolution: " + screenWidth.ToString() + "x" + screenHeight.ToString();
 
-            //Form intializations
-            //this.FormClosing += Form1_FormClosing;
-
+            
             //VLC initialization and View controls
             Core.Initialize();
             _libVLC = new LibVLC("--input-repeat=2");   //"--verbose=2"
@@ -106,13 +98,20 @@ namespace xPlatformLukma
 
             //Structure Intializations
             configInfo = new ConfigStruct();
-            categoriesDic = new Dictionary<string, string[]> { };
+            categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
+            ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
 
         }
+        
+        public bool IsPlatformWindows()
+        {
+            return System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        }
+
         //-----Reads the config files
         public void ReadConfig()  //How to read configuration from config file
         {
@@ -138,7 +137,7 @@ namespace xPlatformLukma
             sConfigFile = Path.Combine(configInfo.configDir, "config.txt");
             configInfo.categoryFile = Path.Combine(configInfo.configDir, "Categories.txt");
             configInfo.divePoolFile = Path.Combine(configInfo.configDir, "Letters_And_Numbers.txt");
-            configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "ffmpeg.exe");
+            configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
             configInfo.logoDir = Path.Combine(configInfo.appDir, "logos");
             configInfo.customLogoFile = "customLogos.ini";
             string aboveAppDir = Path.Combine(configInfo.appDir, "..");
@@ -189,6 +188,7 @@ namespace xPlatformLukma
                     //
                     else
                     {
+                        Debug.WriteLine("Something is wrong in config file: " + sLine);
                         Console.WriteLine("Something is wrong in config file: " + sLine);
                     }
 
@@ -196,7 +196,7 @@ namespace xPlatformLukma
             }
             UpdateConfigPaths();
 
-            Console.WriteLine("done reading config file");
+            //Debug.WriteLine("done reading config file");
         }
 
         //-----Updates calculated paths
@@ -217,9 +217,9 @@ namespace xPlatformLukma
                 string CatPath = configInfo.categoryFile;
                 using (StreamReader sr = new(CatPath))
                 {
+            
                     while (!sr.EndOfStream)
                     {
-
                         string sListItem = sr.ReadLine();
                         if (!String.IsNullOrEmpty(sListItem))
                         {
@@ -228,7 +228,7 @@ namespace xPlatformLukma
                         }
                     }
                 }
-
+                
                 //For each category, reach the corresponding category file
                 for (int i = 0; i < categoriesDic.Count; i++)
                 {
@@ -248,12 +248,73 @@ namespace xPlatformLukma
                                     arrString.Add(sListItem);
                                 }
                             }
+                            //------sort the Array
+                            arrString.Sort();
                             categoriesDic[keyValue] = arrString.ToArray();
                         }
                     }
                 }
             }
-            catch (Exception ex) { Console.WriteLine(ex.Message.ToString()); }
+            catch (Exception ex) {
+                Debug.WriteLine(ex.Message.ToString());
+                Console.WriteLine(ex.Message.ToString()); }
+        }
+
+
+        //Reads the custom logos file and updates local structure
+        public void ReadCustomLogos(ConfigStruct myConfigInfo)
+        {
+
+            string sCustomLogoConfig = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
+
+            if (File.Exists(sCustomLogoConfig))
+            {
+                using (StreamReader sr = new(sCustomLogoConfig))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        string sLine = sr.ReadLine().Trim();
+                        string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
+
+
+                        if (aLine.Length == 2)
+                        {
+                            string sParameter = aLine[0];
+                            string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
+                            //May also have to replace slashes here
+                            if (!myConfigInfo.customLogos.ContainsKey(sParameter))
+                            {
+                                myConfigInfo.customLogos.Add(sParameter, sValue);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //If there is no file, add the default primary logo
+                string tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
+                if (File.Exists(tmpString))
+                {
+                    myConfigInfo.customLogos.Add("Primary", tmpString);
+                    ReWriteCustomLogosFile(myConfigInfo);
+
+                }
+
+            }
+
+        }
+        private void ReWriteCustomLogosFile(ConfigStruct myConfigInfo)
+        {
+            string filePath = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
+            string[] sArray = new string[myConfigInfo.customLogos.Count];
+            for (int i = 0; i < sArray.Length; i++)
+            {
+                sArray[i] = myConfigInfo.customLogos.Keys.ElementAt(i) + "=" +
+                    myConfigInfo.customLogos[myConfigInfo.customLogos.Keys.ElementAt(i)];
+            }
+            File.WriteAllText(filePath, string.Join(Environment.NewLine, sArray));
+
         }
 
         //Helper function to load the combo boxes
@@ -265,7 +326,7 @@ namespace xPlatformLukma
             
         }
 
-        private void Load_Category_ComboBox(Dictionary<string, string[]> myDictionary)                                   //Populate categories ComboBox
+        private void Load_Category_ComboBox(SortedDictionary<string, string[]> myDictionary)                                   //Populate categories ComboBox
         {
             combo_CategoryComboBox.Items.Clear();
             for (int i = 0; i < myDictionary.Count; i++)
@@ -281,6 +342,7 @@ namespace xPlatformLukma
             combo_VideoQuality.Items.Clear();
             combo_VideoQuality.Items.Add("1080");
             combo_VideoQuality.Items.Add("720");
+            combo_VideoQuality.SelectedIndex = 0;
         }
 
         private void PlayVideo(string file)
@@ -292,11 +354,12 @@ namespace xPlatformLukma
                 //slider_VideoSlider
 
                 //Buttons
-                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Background);
+                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
 
             }
             catch (Exception ex)
             {
+                Debug.Write("During play video " + ex.Message);
                 Console.Write("During play video " + ex.Message);
             }
 
@@ -328,10 +391,11 @@ namespace xPlatformLukma
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
                 _media?.Dispose();
-                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Background);
+                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
             }
             else
             {
+                Debug.WriteLine("File not found: " + filename);
                 Console.WriteLine("File not found: " + filename);
             }
         }
@@ -340,14 +404,15 @@ namespace xPlatformLukma
         {
             if (_mp.IsPlaying)
             {
-                _mp.Stop();
+                //_mp.Stop();         //Causing a deadlock
+                _mp.Pause();
                 _mp.TimeChanged -= MP_TimeChanged;
                 slider_VideoSlider.ValueChanged -= SL_TimeChanged;
 
                 //_mp?.Dispose();       //This is causing the popout
                 //_mp = new MediaPlayer(_libVLC);
                 //VideoViewer.MediaPlayer = _mp;
-                Dispatcher.UIThread.Post(() => UpdateVideoButtons(false), DispatcherPriority.Background);
+                Dispatcher.UIThread.Post(() => UpdateVideoButtons(false), DispatcherPriority.Normal);
             }
             
         }
@@ -381,18 +446,30 @@ namespace xPlatformLukma
 
             cnt_TimerValue.Value = timeset;
             date_DatePicker1.SelectedDate = DateTime.Now;
-            lbl_VideoFile.Content = "";
+            lbl_VideoFile.Text = "";
+
+            completionTimer = new();
+            completionTimer.Interval = new TimeSpan(0,0,1);
+            completionTimer.Tick += PercentCompleteTracker;
+            completionTimer.Start();
+
             RandomQuote();
         }
-
-        private void ClearStuff()
+        private void ClearStuffAfterSave()
         {
             UpdateVideoPath("");
             combo_CategoryComboBox.SelectedIndex = -1;
+            combo_CategoryComboBox.IsEnabled = false;
             combo_CatSubName.SelectedIndex = -1;
             txtb_Description.Clear();
             btn_Save.IsEnabled = false;
-            
+
+        }
+        private void ClearStuff()
+        {
+
+            ClearStuffAfterSave();
+
             //Stop video
             MediaPlayerStopVideo();
             UpdateVideoButtons(false);
@@ -415,7 +492,13 @@ namespace xPlatformLukma
         private void UpdateVideoPath(string path)
         {
             currentVideoPath = path;
-            lbl_VideoFile.Content = path;
+            if(path != "")
+            {
+                string tmpPath = Path.GetFileName(path);
+                path = tmpPath;
+                            }
+            lbl_VideoFile.Text = path;
+
         }
 
         private void RandomQuote()
@@ -457,13 +540,14 @@ namespace xPlatformLukma
             return returnPath;
         }
 
-        public string GetPrimaryLogo()
+        public string GetPrimaryLogo(VideoData videoDataConverting)
         {
             string returnPath;
             string videoQuality;
-            if (combo_VideoQuality.IsEffectivelyVisible)
+            
+            if (videoDataConverting.Resolution != null )
             {
-                videoQuality = combo_VideoQuality.SelectedValue.ToString();
+                videoQuality = videoDataConverting.Resolution;
             }
             else
             {
@@ -474,13 +558,9 @@ namespace xPlatformLukma
             {
                 returnPath = configInfo.customLogos["Primary"];
             }
-            else if (videoQuality == "480")
-            {
-                returnPath = Path.Combine(configInfo.logoDir, "logo_480.png");
-            }
             else
             {
-                returnPath = Path.Combine(configInfo.logoDir, "logo_1080.png");
+                returnPath = Path.Combine(configInfo.logoDir, "SDCLogo_1080.png");
             }
 
             return returnPath;
@@ -570,7 +650,7 @@ namespace xPlatformLukma
                 newUploadPathFile = Path.Combine(uploadPath, tempUploadName + extension);
                 count++;
             }
-
+            //copy video from camera to HDD
             try
             {
                 
@@ -582,8 +662,9 @@ namespace xPlatformLukma
             }
             catch (Exception ex)
             {
+                Debug.Write("During Save and before convert:" + ex.Message);
                 Console.Write("During Save and before convert:" + ex.Message);
-            }       //copy video from camera to HDD
+            }       
 
             string secondaryLogoPath = GetSecondaryLogo();
 
@@ -599,7 +680,7 @@ namespace xPlatformLukma
 
             ListOfFiles ??= new List<VideoData>();
             ListOfFiles.Add(BillvideoData);
-            ClearStuff();
+            ClearStuffAfterSave();
             if (!FlagConverting)
             {
                 FlagConverting = true;
@@ -623,7 +704,7 @@ namespace xPlatformLukma
             }   //find oldest file to convert
 
 
-            string logo1 = GetPrimaryLogo();
+            string logo1 = GetPrimaryLogo(videoDataConverting);
 
             Task converter = Task.Run(() =>                   //convert video to lower res
             {
@@ -631,6 +712,15 @@ namespace xPlatformLukma
                 //   Building the argument list
                 //          Places the images in the center
                 string ffmpegArgs = "-i \"" + videoDataConverting.SourcePath + "\" ";
+                string scalingOnce = "";
+                string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+
+                if (videoDataConverting.Resolution != "1080")
+                {
+                    //If the image needs to be scaled
+                    scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
+                    scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+                }
 
                 if (videoDataConverting.SecondaryLogoPath != "")
                 {
@@ -638,13 +728,15 @@ namespace xPlatformLukma
                     ffmpegArgs = ffmpegArgs +
                     "-i \"" + logo1 + "\" " +
                         "-i \"" + logo2 + "\" " +
-                        "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+                        scalingTwice;
                 }
                 else
                 {
                     ffmpegArgs = ffmpegArgs +
                         "-i \"" + logo1 + "\" " +
-                        "-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";
+                        //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
+                        //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
+                        "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
                 }
                 ffmpegArgs = ffmpegArgs +
                     "-s hd" + videoDataConverting.Resolution + " " +
@@ -668,7 +760,7 @@ namespace xPlatformLukma
                              CreateNoWindow = true,
                              WorkingDirectory = configInfo.workingDirectoryVar
                          },
-                    EnableRaisingEvents = true
+                    EnableRaisingEvents = false
                 };
 
                 ffmpeg.Start();
@@ -678,10 +770,12 @@ namespace xPlatformLukma
                 //string stderr = ffmpeg.StandardError.ReadToEnd();
                 try
                 {
+                    //Debug.WriteLine("Percent complete run");
                     ShowPercentComplete();
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine("During show complete: " + ex.Message);
                     Console.WriteLine("During show complete: " + ex.Message);
                 }
 
@@ -699,6 +793,8 @@ namespace xPlatformLukma
             StreamReader reader = ffmpeg.StandardError;
             while ((line = reader.ReadLine()) != null)
             {
+                //Debug.WriteLine("From ffmpeg: " + line);        //for debug
+
                 if (!string.IsNullOrEmpty(line))
                 {
                     if (line.Contains("Duration") && line.Contains("bitrate") && line.Contains("start") && line.Contains("kb/s"))
@@ -707,7 +803,7 @@ namespace xPlatformLukma
                         int length = line.IndexOf(", start:") - startPos;
                         string sub = line.Substring(startPos, length);
                         duration = sub;
-                        //Console.WriteLine(duration);       //for Debugging
+                        //Debug.WriteLine(duration);       //for Debugging
                     }
                     if (line.Contains("frame=") && line.Contains("size=") && line.Contains("time="))
                     {
@@ -715,11 +811,11 @@ namespace xPlatformLukma
                         int length = line.IndexOf(" bitrate=") - startPos;
                         string sub = line.Substring(startPos, length);
                         current_duration = sub;
-                        //Console.WriteLine(current_duration);       //for Debugging
+                        //Debug.WriteLine(current_duration);       //for Debugging
                         percent = Convert.ToInt32(Math.Round(TimeSpan.Parse(duration).TotalSeconds)) == 0 ? 0 :
                             Convert.ToInt32(Math.Round((TimeSpan.Parse(current_duration).TotalSeconds * 100) / TimeSpan.Parse(duration).TotalSeconds, 5));
 
-                        //Console.WriteLine("Conversion complete: " + percent);       //for Debugging
+                        //Debug.WriteLine("Conversion complete: " + percent);       //for Debugging
                     }
                 }
             }
@@ -926,15 +1022,15 @@ namespace xPlatformLukma
 
         private void PercentCompleteTracker(object sender, EventArgs e)
         {
-            if (percent > 0)
+            if (percent > 0 || ListOfFiles.Count > 0)
             {
                 lbl_progressLabel.IsVisible = true;
                 string fileShow = Path.GetFileNameWithoutExtension(videoDataConverting.UploadPath);
-                lbl_progressLabel.Content = fileShow + " " + percent.ToString() + "% (1 of " + ListOfFiles.Count + " )";
+                lbl_progressLabel.Text = percent.ToString() + "% (1 of " + ListOfFiles.Count + " ) " + fileShow;
             }
-            if (lbl_progressLabel.Content.ToString().Contains("100") == true || ListOfFiles.Count == 0)
+            if (lbl_progressLabel.Text.ToString().Contains("100") == true || ListOfFiles.Count == 0)
             {
-                lbl_progressLabel.Content = "";
+                lbl_progressLabel.Text = "";
                 lbl_progressLabel.IsVisible = false;
             }
         }

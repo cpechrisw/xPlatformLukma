@@ -16,7 +16,7 @@ namespace xPlatformLukma;
 
 public partial class LogoWindow : Window
 {
-    readonly Dictionary<string, string[]> myCategoryDic;
+    readonly SortedDictionary<string, string[]> myCategoryDic;
     ConfigStruct myConfigInfo;
     string initLogoDirectory;
 
@@ -25,7 +25,7 @@ public partial class LogoWindow : Window
         InitializeComponent();
     }
 
-    public LogoWindow(ConfigStruct passConfigInfo, Dictionary<string, string[]> passCategoryDic)
+    public LogoWindow(ConfigStruct passConfigInfo, SortedDictionary<string, string[]> passCategoryDic)
     {
         InitializeComponent();
         myCategoryDic = passCategoryDic;
@@ -78,7 +78,7 @@ public partial class LogoWindow : Window
         else
         {
             //If there is no file, add the default primary logo
-            string tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "logo_1080.png");
+            string tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
             if (File.Exists(tmpString))
             {
                 myConfigInfo.customLogos.Add("Primary", tmpString);
@@ -298,7 +298,7 @@ public partial class LogoWindow : Window
             }
             else
             {
-                tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "logo_1080.png");
+                tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
                 CheckAndAddNewLogo(catName, tmpString);
             }
             lbl_additionalInfo.Content = tmpString;

@@ -12,13 +12,13 @@ namespace xPlatformLukma;
 public partial class CategoriesWindow : Window
 {
     ConfigStruct myConfigInfo;
-    Dictionary<string, string[]> myCategoriesDic;
+    SortedDictionary<string, string[]> myCategoriesDic;
 
     public CategoriesWindow()
     { 
         InitializeComponent();
     }
-    public CategoriesWindow(ConfigStruct configInfo, Dictionary<string, string[]> categoriesDic)
+    public CategoriesWindow(ConfigStruct configInfo, SortedDictionary<string, string[]> categoriesDic)
         :this()
     {
         myConfigInfo = configInfo;
@@ -224,6 +224,7 @@ public partial class CategoriesWindow : Window
 
                 //add it to the list box
                 lsbox_Categories.Items.Add(txtBox_NewCategory.Text);
+                
 
                 //Writing new category to categoryFile
 
@@ -269,6 +270,7 @@ public partial class CategoriesWindow : Window
             {
                 //Add it to the dictionary
                 tmpArrString.Add(sName);
+                tmpArrString.Sort();
                 myCategoriesDic[sCatName] = tmpArrString.ToArray();
 
                 //add it to the list box

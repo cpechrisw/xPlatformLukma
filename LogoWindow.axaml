@@ -24,6 +24,11 @@
 
 	<StackPanel Margin="5,10,0,0">
 		<!--Main Grid-->
+		<Label Name="lbl_logoSizeInfo"
+			   Content="Logos should be less than 200x200 pixels"
+			   FontWeight="Bold" Margin="110,0,0,5"
+			   HorizontalAlignment="Center"
+			   />
 		<Grid ColumnDefinitions="Auto,Auto,Auto,Auto" >
 			<!--Controls and pickers-->
 			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
@@ -77,9 +82,7 @@
 		</Grid>
 		<Label Name="lbl_additionalInfo" Content="Applies to all Categories Except teams"/>
 		<Button Name="btn_Close" Content="Close" Margin="125,0,0,0"/>
-		
-		
-		
+				
 		
 	</StackPanel>
 	

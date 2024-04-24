@@ -24,8 +24,6 @@
 	</Window.Resources>
 	<!---->
 	<Window.Styles>
-		<Style Selector="TextBlock">
-		</Style>
 		<Style Selector="Button">
 			<Setter Property="FontWeight" Value="Bold"/>
 			<Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -33,6 +31,10 @@
 		<Style Selector="ComboBox">
 			<Setter Property="Background" Value="#404040"/>
 			<Setter Property="Foreground" Value="White"/>
+		</Style>
+		<Style Selector="ComboBoxItem">
+			<Setter Property="Background" Value="#404040"/>
+			<Setter Property="Foreground" Value="#404040"/>
 		</Style>
 		<Style Selector="TextBlock">
 			<Setter Property="Background" Value="#404040"/>
@@ -87,10 +89,18 @@
 					
 					
 					<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto," Margin="10,0,10,5">
-						<Button Name="btn_VideoPlay" Grid.Column="0" >Play</Button>
-						<Button Name="btn_VideoRewind" Grid.Column="1" >Rewind</Button>
-						<Button Name="btn_VideoFF" Grid.Column="2" >FFwd</Button>
-						<Button Name="btn_VideoRestart" Grid.Column="3" >Restart</Button>
+						<Button Name="btn_VideoPlay" Grid.Column="0" Width="40" Background="Green" >
+							<Image Source="/Assets/play-pause.png"/>
+						</Button>
+						<Button Name="btn_VideoRewind" Grid.Column="1" Width="40" Background="SeaGreen">
+							<Image Source="/Assets/backward.png"/>
+						</Button>
+						<Button Name="btn_VideoFF" Grid.Column="2" Width="40" Background="SeaGreen">
+							<Image Source="/Assets/forward.png"/>
+						</Button>
+						<Button Name="btn_VideoRestart" Grid.Column="3" Height="35" Width="40" Background="#ff3333">
+							<Image Source="/Assets/reload1.png"/>
+						</Button>
 						
 						<!--To be added later for clipping-->
 						<!--<Button Name="btn_VideoClipStart" Grid.Column="5" >Clip Start</Button>
@@ -109,14 +119,17 @@
 						<Label VerticalAlignment="Center" FontWeight="Bold" >Choose Video: </Label>
 						<Button Name="btn_Search" Content="Search" Padding="7"></Button>
 					</StackPanel>
-					<Label Name="lbl_VideoFile" Grid.Row="1" FontSize="12" >Just some file name</Label>
-
+					<TextBlock Name="lbl_VideoFile" Background="Black" Grid.Row="1" FontSize="12" 
+							   Text="Just some file" TextTrimming="WordEllipsis"></TextBlock>
+					
 					<!--Category/Name Labels and Dropdowns-->
 					<Grid Grid.Row="2" ColumnDefinitions="*,*" VerticalAlignment="Center" Margin="2,0,0,0">
 						<StackPanel Grid.Column="0" Orientation="Vertical" >
 							<Label FontWeight="Bold" >Category:</Label>
 							<ComboBox Name="combo_CategoryComboBox" FontSize="12"
-									  Width="120" MaxDropDownHeight="200"></ComboBox>
+									  Width="120" MaxDropDownHeight="200" >
+							</ComboBox>
+						
 						</StackPanel>
 						<StackPanel Name="sPanel_CatSubName" Grid.Column="1" Orientation="Vertical" >
 							<Label Name="lbl_CatSubName" FontWeight="Bold" >Name:</Label>
@@ -146,7 +159,7 @@
 						<!--Video Quality-->
 						<StackPanel Grid.Column="2" Name="pnl_VideoQuality" Orientation="Vertical" HorizontalAlignment="Left">
 							<Label FontWeight="Bold" >Video Quality: </Label>
-							<ComboBox Name="combo_VideoQuality"  PlaceholderText="1080P"
+							<ComboBox Name="combo_VideoQuality"  PlaceholderText="quality" 
 										FontSize="12" Width="100" MaxDropDownHeight="200">
 							</ComboBox>
 						</StackPanel>
@@ -162,7 +175,10 @@
 						<Button Name="btn_Clear" Width="55" HorizontalContentAlignment="Center" Content="Clear"/>
 					</StackPanel>
 					<!--Progress label-->
-					<Label Name="lbl_progressLabel" Grid.Row="6" Content="Conversion Progress"/>
+					<TextBlock Name="lbl_progressLabel" Grid.Row="6" Background="Black" FontSize="12"
+							   Width="240" TextWrapping="WrapWithOverflow"
+							   Margin="2,5,0,0" Text="Conversion Progress"/>
+					
 					<!--Quotes label-->
 					<TextBlock Name="textBlock_quotesLabel" Grid.Row="7" Background="Black" 
 							   Width="240" TextWrapping="WrapWithOverflow"

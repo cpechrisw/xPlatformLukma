@@ -8,6 +8,7 @@
     <Copyright>2023</Copyright>
     <ApplicationIcon>Assets\lukma_black.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="VideoView.cs" />
@@ -15,6 +16,10 @@
   
   <ItemGroup>
 	<AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="Assets\ffmpeg.exe" />
   </ItemGroup>
   
   
@@ -34,8 +39,11 @@
   
   
   <ItemGroup>
+    <AvaloniaResource Update="Assets\ffmpeg.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AvaloniaResource>
     <AvaloniaResource Update="Assets\lukma_black.ico">
-      <CopyToOutputDirectory></CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AvaloniaResource>
   </ItemGroup>
 
@@ -106,16 +114,13 @@
     <None Update="config\Videographers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="logos\logo_1080.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="logos\logo_480.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="logos\logo_720.png">
+    <None Update="logos\SDCLogo_1080.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="logos\SDCRhythmXP.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="logos\Sebastian_1080.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
