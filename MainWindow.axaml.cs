@@ -17,6 +17,7 @@ using Microsoft.VisualBasic.FileIO;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using System.Runtime.InteropServices;
+using Avalonia.LogicalTree;
 
 namespace xPlatformLukma
 {
@@ -29,7 +30,8 @@ namespace xPlatformLukma
         private LogoWindow _logoWindow;
         private CategoriesWindow _categoriesWindow;
         private bool winPlatform;            //1 if windows, 0 if not windows
-        
+        private string myErrorsOnLoad="";      //specifically for load to show errors
+
         //----used in ShowPercentComplete when files are being converted
         private DispatcherTimer completionTimer;
         int percent;
@@ -104,6 +106,7 @@ namespace xPlatformLukma
             ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
+                          
 
         }
         
@@ -282,7 +285,10 @@ namespace xPlatformLukma
                             string sParameter = aLine[0];
                             string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
                             //May also have to replace slashes here
-                            if (!myConfigInfo.customLogos.ContainsKey(sParameter))
+                            if (!File.Exists(sValue))
+                                myErrorsOnLoad = "Error loading logos, please fix before converting videos";
+
+                            if (!myConfigInfo.customLogos.ContainsKey(sParameter) && File.Exists(sValue))
                             {
                                 myConfigInfo.customLogos.Add(sParameter, sValue);
                             }
@@ -452,6 +458,7 @@ namespace xPlatformLukma
             completionTimer.Interval = new TimeSpan(0,0,1);
             completionTimer.Tick += PercentCompleteTracker;
             completionTimer.Start();
+            this.Opened += ShowErrorAfterLoad;
 
             RandomQuote();
         }
@@ -952,6 +959,20 @@ namespace xPlatformLukma
             }
         }
 
+        private void ShowErrorAfterLoad(object sender, EventArgs e)
+        {
+            if (myErrorsOnLoad != "")
+            {
+                textBlock_quotesLabel.Text = myErrorsOnLoad;
+                /*
+                var box = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
+                */
+            }
+
+        }
+
         private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             Dispatcher.UIThread.Post(() => UpdateTimerFromSlider(e), DispatcherPriority.Background);
@@ -1202,11 +1223,8 @@ namespace xPlatformLukma
 
         public void Menu_CategoryNamesClick()
         {
-            if(_categoriesWindow == null)
-            {
-                _categoriesWindow = new(configInfo, categoriesDic);
-                _categoriesWindow.Closing += ReloadComboBoxes;
-            }
+            _categoriesWindow = new(configInfo, categoriesDic);
+            _categoriesWindow.Closing += ReloadComboBoxes;
             _categoriesWindow.Show();
         }
 

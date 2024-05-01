@@ -1,11 +1,5 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform.Storage;
-using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,10 +61,11 @@ public partial class LogoWindow : Window
                         string sParameter = aLine[0];
                         string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
                         //May also have to replace slashes here
-                        if (!myConfigInfo.customLogos.ContainsKey(sParameter))
+                        if (!myConfigInfo.customLogos.ContainsKey(sParameter) )
                         {
                             myConfigInfo.customLogos.Add(sParameter, sValue);
                         }
+                        lbl_additionalInfo.Content = "Error reading custom logo file";
                     }
                 }
             }
@@ -301,10 +296,19 @@ public partial class LogoWindow : Window
                 tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
                 CheckAndAddNewLogo(catName, tmpString);
             }
-            lbl_additionalInfo.Content = tmpString;
-            SetImage(image_CurrentLogo, tmpString);
-            Enable_SearchButton(this, new EventArgs());
-            Enable_ApplyButton(this, new EventArgs());
+            if(File.Exists(tmpString))
+            {
+                lbl_additionalInfo.Content = tmpString;
+                SetImage(image_CurrentLogo, tmpString);
+                Enable_SearchButton(this, new EventArgs());
+                Enable_ApplyButton(this, new EventArgs());
+            }
+            else
+            {
+                lbl_additionalInfo.Content = "Re-add logo for " + catName + ". File not found: " + tmpString;
+
+            }
+            
         }
     }
         
