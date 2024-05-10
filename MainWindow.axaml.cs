@@ -139,8 +139,11 @@ namespace xPlatformLukma
             configInfo.configDir = Path.Combine(configInfo.appDir, "config");
             sConfigFile = Path.Combine(configInfo.configDir, "config.txt");
             configInfo.categoryFile = Path.Combine(configInfo.configDir, "Categories.txt");
-            configInfo.divePoolFile = Path.Combine(configInfo.configDir, "Letters_And_Numbers.txt");
-            configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
+            if(winPlatform)
+                configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
+            else
+                configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg");
+
             configInfo.logoDir = Path.Combine(configInfo.appDir, "logos");
             configInfo.customLogoFile = "customLogos.ini";
             string aboveAppDir = Path.Combine(configInfo.appDir, "..");
@@ -168,16 +171,17 @@ namespace xPlatformLukma
                                 configInfo.categoryFile = Path.Combine(configInfo.configDir, sValue);
                                 break;
 
-                            case "NLPathVar":
-                                configInfo.divePoolFile = Path.Combine(configInfo.configDir, sValue);
-                                break;
-
                             case "localVideoDir":
-                                configInfo.unconvertedVideoDir = sValue;
+                                if (File.Exists(sValue)) {
+                                    configInfo.unconvertedVideoDir = sValue;
+                                }
                                 break;
 
                             case "convertedVideosTopDir":
-                                configInfo.convertedVideosTopDir = sValue;
+                                if (File.Exists(sValue))
+                                {
+                                    configInfo.convertedVideosTopDir = sValue;
+                                }
                                 break;
 
                             case "workingDirectoryVar":
@@ -1345,7 +1349,6 @@ namespace xPlatformLukma
         public string appDir;                   //variable for application directory
         public string configDir;                //Variable for the config directory
         public string categoryFile;             //variable for path and filename for categories list
-        public string divePoolFile;             //variable for path and filename for Numers and Letters list
         public string logoDir;                  //variable where logos are located
         public string customLogoFile;           //Variable for the custom logo file
         public string unconvertedVideoDir;      //variable for local unconverted video directory

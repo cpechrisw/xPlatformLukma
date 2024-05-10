@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Assets/ffmpeg.exe
+Assets/ffmpeg
+.avalonia-build-tasks/id
