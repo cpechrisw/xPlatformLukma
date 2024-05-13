@@ -106,6 +106,7 @@ namespace xPlatformLukma
             ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
+            
                           
 
         }
@@ -123,7 +124,6 @@ namespace xPlatformLukma
             //clear any values from these variables
             configInfo.appDir =
             configInfo.categoryFile =
-            configInfo.divePoolFile =
             configInfo.logoDir =
             configInfo.convertedVideosTopDir =
             configInfo.unconvertedVideoDir =
@@ -139,6 +139,8 @@ namespace xPlatformLukma
             configInfo.configDir = Path.Combine(configInfo.appDir, "config");
             sConfigFile = Path.Combine(configInfo.configDir, "config.txt");
             configInfo.categoryFile = Path.Combine(configInfo.configDir, "Categories.txt");
+            
+            //Conditional for Mac
             if(winPlatform)
                 configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
             else
@@ -172,7 +174,8 @@ namespace xPlatformLukma
                                 break;
 
                             case "localVideoDir":
-                                if (File.Exists(sValue)) {
+                                if (File.Exists(sValue)) 
+                                {
                                     configInfo.unconvertedVideoDir = sValue;
                                 }
                                 break;
@@ -185,7 +188,10 @@ namespace xPlatformLukma
                                 break;
 
                             case "workingDirectoryVar":
-                                configInfo.workingDirectoryVar = sValue;
+                                if (File.Exists(sValue))
+                                {
+                                    configInfo.workingDirectoryVar = sValue;
+                                }
                                 break;
                             default: break;
 
@@ -202,6 +208,11 @@ namespace xPlatformLukma
                 }
             }
             UpdateConfigPaths();
+            
+            //--------------
+            //Need to rewrite config file if things went wrong
+            //--------------
+            
 
             //Debug.WriteLine("done reading config file");
         }
@@ -551,20 +562,10 @@ namespace xPlatformLukma
             return returnPath;
         }
 
-        public string GetPrimaryLogo(VideoData videoDataConverting)
+        public string GetPrimaryLogo()
         {
             string returnPath;
-            string videoQuality;
-            
-            if (videoDataConverting.Resolution != null )
-            {
-                videoQuality = videoDataConverting.Resolution;
-            }
-            else
-            {
-                videoQuality = "480";
-            }
-
+                        
             if (configInfo.customLogos.ContainsKey("Primary"))
             {
                 returnPath = configInfo.customLogos["Primary"];
@@ -606,6 +607,7 @@ namespace xPlatformLukma
             {
                 videoQuality = "480";
             }
+
 
             string fileName = CreateFileName();          //append unique identifier, resolution
             string originalFile = fileName + ".mp4";
@@ -715,7 +717,7 @@ namespace xPlatformLukma
             }   //find oldest file to convert
 
 
-            string logo1 = GetPrimaryLogo(videoDataConverting);
+            string logo1 = GetPrimaryLogo();
 
             Task converter = Task.Run(() =>                   //convert video to lower res
             {
@@ -749,6 +751,7 @@ namespace xPlatformLukma
                         //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
                         "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
                 }
+                                
                 ffmpegArgs = ffmpegArgs +
                     "-s hd" + videoDataConverting.Resolution + " " +
                     "-c:v libx264 " +
