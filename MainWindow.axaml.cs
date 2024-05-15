@@ -1,9 +1,7 @@
 using Avalonia.Controls;
-//using Avalonia.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 using MsBox.Avalonia;
-//using LibVLCSharp.Avalonia;
 using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
@@ -17,7 +15,6 @@ using Microsoft.VisualBasic.FileIO;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using System.Runtime.InteropServices;
-using Avalonia.LogicalTree;
 
 namespace xPlatformLukma
 {
@@ -30,7 +27,8 @@ namespace xPlatformLukma
         private LogoWindow _logoWindow;
         private CategoriesWindow _categoriesWindow;
         private bool winPlatform;            //1 if windows, 0 if not windows
-        private string myErrorsOnLoad="";      //specifically for load to show errors
+        private string myErrorsOnLoad = "";      //specifically for load to show errors
+        private Utils newUtil;              //used for common functions
 
         //----used in ShowPercentComplete when files are being converted
         private DispatcherTimer completionTimer;
@@ -96,14 +94,15 @@ namespace xPlatformLukma
             //_videoViewer = this.Get<VideoView>("VideoViewer");
             //_mp.EndReached += MediaEndReached;
             VideoViewer.MediaPlayer = _mp;
-            
+
 
             //Structure Intializations
+            newUtil = new Utils();
             configInfo = new ConfigStruct();
             categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
-            ReadCustomLogos(configInfo);
+            myErrorsOnLoad = newUtil.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             
@@ -170,25 +169,41 @@ namespace xPlatformLukma
                         switch (sParameter)
                         {
                             case "catPathVar":
-                                configInfo.categoryFile = Path.Combine(configInfo.configDir, sValue);
-                                break;
-
-                            case "localVideoDir":
-                                if (File.Exists(sValue)) 
+                                if (File.Exists( Path.Combine(configInfo.configDir, sValue)) )
                                 {
-                                    configInfo.unconvertedVideoDir = sValue;
+                                    configInfo.categoryFile = Path.Combine(configInfo.configDir, sValue);
+                                }
+                                else
+                                {
+                                    newUtil.UpdateConfigFile(configInfo, "catPathVar", configInfo.categoryFile);
                                 }
                                 break;
 
+                            case "localVideoDir":
+                                if (Directory.Exists(sValue)) 
+                                {
+                                    configInfo.unconvertedVideoDir = sValue;
+                                }
+                                else
+                                {
+                                    newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
+                                }
+
+                                break;
+
                             case "convertedVideosTopDir":
-                                if (File.Exists(sValue))
+                                if (Directory.Exists(sValue))
                                 {
                                     configInfo.convertedVideosTopDir = sValue;
+                                }
+                                else
+                                {
+                                    newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
                                 }
                                 break;
 
                             case "workingDirectoryVar":
-                                if (File.Exists(sValue))
+                                if (Directory.Exists(sValue))
                                 {
                                     configInfo.workingDirectoryVar = sValue;
                                 }
@@ -208,12 +223,6 @@ namespace xPlatformLukma
                 }
             }
             UpdateConfigPaths();
-            
-            //--------------
-            //Need to rewrite config file if things went wrong
-            //--------------
-            
-
             //Debug.WriteLine("done reading config file");
         }
 
@@ -278,65 +287,6 @@ namespace xPlatformLukma
                 Console.WriteLine(ex.Message.ToString()); }
         }
 
-
-        //Reads the custom logos file and updates local structure
-        public void ReadCustomLogos(ConfigStruct myConfigInfo)
-        {
-
-            string sCustomLogoConfig = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
-
-            if (File.Exists(sCustomLogoConfig))
-            {
-                using (StreamReader sr = new(sCustomLogoConfig))
-                {
-                    while (!sr.EndOfStream)
-                    {
-                        string sLine = sr.ReadLine().Trim();
-                        string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
-
-
-                        if (aLine.Length == 2)
-                        {
-                            string sParameter = aLine[0];
-                            string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
-                            //May also have to replace slashes here
-                            if (!File.Exists(sValue))
-                                myErrorsOnLoad = "Error loading logos, please fix before converting videos";
-
-                            if (!myConfigInfo.customLogos.ContainsKey(sParameter) && File.Exists(sValue))
-                            {
-                                myConfigInfo.customLogos.Add(sParameter, sValue);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                //If there is no file, add the default primary logo
-                string tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
-                if (File.Exists(tmpString))
-                {
-                    myConfigInfo.customLogos.Add("Primary", tmpString);
-                    ReWriteCustomLogosFile(myConfigInfo);
-
-                }
-
-            }
-
-        }
-        private void ReWriteCustomLogosFile(ConfigStruct myConfigInfo)
-        {
-            string filePath = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
-            string[] sArray = new string[myConfigInfo.customLogos.Count];
-            for (int i = 0; i < sArray.Length; i++)
-            {
-                sArray[i] = myConfigInfo.customLogos.Keys.ElementAt(i) + "=" +
-                    myConfigInfo.customLogos[myConfigInfo.customLogos.Keys.ElementAt(i)];
-            }
-            File.WriteAllText(filePath, string.Join(Environment.NewLine, sArray));
-
-        }
 
         //Helper function to load the combo boxes
         private void Load_ComboBoxes()
@@ -539,7 +489,7 @@ namespace xPlatformLukma
         //
         public string GetSecondaryLogo()
         {
-
+            
             string returnPath = "";
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
             string nameCombo = combo_CatSubName.SelectedValue.ToString();
@@ -558,7 +508,17 @@ namespace xPlatformLukma
                     returnPath = configInfo.customLogos[catCombo];
                 }
             }
-
+            if(!File.Exists(returnPath))
+            {
+                //Throw error message
+                string msg = "Secondary logo was not found: " + returnPath;
+                Debug.Write(msg);
+                 
+                var box = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
+                returnPath = "";
+            }
             return returnPath;
         }
 
@@ -574,7 +534,18 @@ namespace xPlatformLukma
             {
                 returnPath = Path.Combine(configInfo.logoDir, "SDCLogo_1080.png");
             }
+            
+            if (!File.Exists(returnPath))
+            {
+                //Throw error message
+                string msg = "Primary Logo was not found: " + returnPath;
+                Debug.Write(msg);
 
+                var box = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
+                returnPath = "";
+            }
             return returnPath;
         }
 
@@ -1345,33 +1316,6 @@ namespace xPlatformLukma
             Start();
         }
         
-    }
-
-    public struct ConfigStruct
-    {
-        public string appDir;                   //variable for application directory
-        public string configDir;                //Variable for the config directory
-        public string categoryFile;             //variable for path and filename for categories list
-        public string logoDir;                  //variable where logos are located
-        public string customLogoFile;           //Variable for the custom logo file
-        public string unconvertedVideoDir;      //variable for local unconverted video directory
-        public string convertedVideosTopDir;    //variable for top level converted video folders directory
-        public string generalCategoryDir;       //variable for converted file path, uses convertedVideosTopDir
-        public string TeamUploadTopFolder;      //variable for converted file path for teamsuses convertedVideosTopDir
-        public string PrivateTeamUploadTopFolder;      //variable for converted file path for teams, uses convertedVideosTopDir
-        public string ffmpegLocation;           //variable for ffmpeg.exe location
-        public string workingDirectoryVar;      //variable for working directory used by ffmpeg
-
-        public Dictionary<string, string> customLogos;  //Used to house custom logos list
-
-    }
-    public struct VideoData
-    {
-        public string SourcePath;
-        public string UploadPath;
-        public string Resolution;
-        public string SecondaryLogoPath;
-        public DateTime FileCreated;
     }
 
 }

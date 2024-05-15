@@ -10,6 +10,7 @@ namespace xPlatformLukma;
 public partial class SettingsWindow : Window
 {
     ConfigStruct myConfigInfo;
+    Utils newUtil;
     public SettingsWindow()
     {
         InitializeComponent();
@@ -18,6 +19,7 @@ public partial class SettingsWindow : Window
         : this()
     {
         myConfigInfo = configInfo;
+        newUtil = new Utils();
         ReadConfig();
         InitializeEvents();
     }
@@ -55,30 +57,7 @@ public partial class SettingsWindow : Window
     }
 
 
-    private void UpdateConfigFile(string oldline, string updatedLine)
-    {
-        string CatPath = Path.Combine(myConfigInfo.configDir, "config.txt");
-        if (File.Exists(CatPath))
-        {
-            string[] lines = File.ReadLines(CatPath).ToArray();
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (lines[i].Contains(oldline))
-                {
-                    string newLine = oldline + "=" + updatedLine;
-                    lines[i] = newLine;
-                }
-            }
-
-            //rewrite file
-            File.WriteAllText(CatPath, string.Join(Environment.NewLine, lines));
-        }
-        else
-        {
-            Console.WriteLine("Couldn't find config file\n");
-        }
-
-    }//End of private function
+    //End of private function
 
     //
     //---------Helper Events
@@ -102,7 +81,7 @@ public partial class SettingsWindow : Window
         myConfigInfo.unconvertedVideoDir = unconvertVideo;
 
         //write change to
-        UpdateConfigFile("localVideoDir", unconvertVideo);
+        newUtil.UpdateConfigFile(myConfigInfo, "localVideoDir", unconvertVideo);
 
     }
 
@@ -113,7 +92,7 @@ public partial class SettingsWindow : Window
         myConfigInfo.convertedVideosTopDir = convertVideo;
 
         //write change to file
-        UpdateConfigFile("convertedVideosTopDir", convertVideo);
+        newUtil.UpdateConfigFile(myConfigInfo,"convertedVideosTopDir", convertVideo);
     }
 
     private void CloseButton_Click(object sender, EventArgs e)

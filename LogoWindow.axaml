@@ -2,8 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="320"
-		Width="700" Height="320"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="340"
+		Width="700" Height="340"
         x:Class="xPlatformLukma.LogoWindow"
         Title="Logo"
 		RequestedThemeVariant="Dark"
@@ -80,7 +80,7 @@
 			
 			
 		</Grid>
-		<Label Name="lbl_additionalInfo" Content="Applies to all Categories Except teams"/>
+		<TextBlock Name="lbl_additionalInfo" TextWrapping="WrapWithOverflow" Text="Applies to all Categories Except teams"/>
 		<Button Name="btn_Close" Content="Close" Margin="125,0,0,0"/>
 				
 		
