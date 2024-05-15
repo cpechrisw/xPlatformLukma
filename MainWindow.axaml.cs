@@ -102,7 +102,7 @@ namespace xPlatformLukma
             categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
-            myErrorsOnLoad = newUtil.ReadCustomLogos(configInfo);
+            myErrorsOnLoad = myErrorsOnLoad + newUtil.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             
@@ -154,6 +154,7 @@ namespace xPlatformLukma
             configInfo.convertedVideosTopDir = aboveAppDir;
             configInfo.customLogos = new Dictionary<string, string>();
 
+            bool errorWithConfigFile = false;
             using (StreamReader sr = new(sConfigFile))
             {
                 while (!sr.EndOfStream)
@@ -176,6 +177,7 @@ namespace xPlatformLukma
                                 else
                                 {
                                     newUtil.UpdateConfigFile(configInfo, "catPathVar", configInfo.categoryFile);
+                                    errorWithConfigFile = true;
                                 }
                                 break;
 
@@ -187,6 +189,7 @@ namespace xPlatformLukma
                                 else
                                 {
                                     newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
+                                    errorWithConfigFile = true;
                                 }
 
                                 break;
@@ -199,6 +202,7 @@ namespace xPlatformLukma
                                 else
                                 {
                                     newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
+                                    errorWithConfigFile = true;
                                 }
                                 break;
 
@@ -218,6 +222,10 @@ namespace xPlatformLukma
                     {
                         Debug.WriteLine("Something is wrong in config file: " + sLine);
                         Console.WriteLine("Something is wrong in config file: " + sLine);
+                    }
+                    if(errorWithConfigFile)
+                    {
+                        myErrorsOnLoad = "Errors found with settings file. Some options were reverted back to defaults";
                     }
 
                 }
