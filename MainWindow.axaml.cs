@@ -134,106 +134,133 @@ namespace xPlatformLukma
             "";
 
             //Setting defaults that should not change
-            configInfo.appDir = AppContext.BaseDirectory.ToString();
-            configInfo.configDir = Path.Combine(configInfo.appDir, "config");
-            sConfigFile = Path.Combine(configInfo.configDir, "config.txt");
-            configInfo.categoryFile = Path.Combine(configInfo.configDir, "Categories.txt");
+            SetDefaultConfigPaths();
             
-            //Conditional for Mac
-            if(winPlatform)
-                configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
-            else
-                configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg");
+            sConfigFile = Path.Combine(configInfo.configDir, "config.txt");
+            bool errorWithConfigFile = false;
+            if (File.Exists(sConfigFile))
+            {
+                using (StreamReader sr = new(sConfigFile))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        string sLine = sr.ReadLine().Trim();
+                        string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
+                        if (aLine.Length == 2)
+                        {
+                            string sParameter = aLine[0].Trim();
+                            string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray()).Trim();
+                            sValue = sValue.Replace("\"", "");
 
-            configInfo.logoDir = Path.Combine(configInfo.appDir, "logos");
+                            switch (sParameter)
+                            {
+                                case "catPathVar":
+                                    if (File.Exists(Path.Combine(configInfo.configDir, sValue)))
+                                    {
+                                        configInfo.categoryFile = Path.Combine(configInfo.configDir, sValue);
+                                    }
+                                    else
+                                    {
+                                        newUtil.UpdateConfigFile(configInfo, "catPathVar", configInfo.categoryFile);
+                                        errorWithConfigFile = true;
+                                    }
+                                    break;
+
+                                case "localVideoDir":
+                                    if (Directory.Exists(sValue))
+                                    {
+                                        configInfo.unconvertedVideoDir = sValue;
+                                    }
+                                    else
+                                    {
+                                        newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
+                                        errorWithConfigFile = true;
+                                    }
+
+                                    break;
+
+                                case "convertedVideosTopDir":
+                                    if (Directory.Exists(sValue))
+                                    {
+                                        configInfo.convertedVideosTopDir = sValue;
+                                    }
+                                    else
+                                    {
+                                        newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
+                                        errorWithConfigFile = true;
+                                    }
+                                    break;
+
+                                case "workingDirectoryVar":
+                                    if (Directory.Exists(sValue))
+                                    {
+                                        configInfo.workingDirectoryVar = sValue;
+                                    }
+                                    break;
+                                default: break;
+
+                            }
+                        }
+                        //
+                        else
+                        {
+                            Debug.WriteLine("Something is wrong in config file: " + sLine);
+                            Console.WriteLine("Something is wrong in config file: " + sLine);
+                        }
+                        if (errorWithConfigFile)
+                        {
+                            myErrorsOnLoad = "Errors found with settings file. Some options were reverted back to defaults";
+                        }
+
+                    }
+                }
+
+            }
+            else        //File doesn't exist, write it out
+            {
+                myErrorsOnLoad = "Error: Settings file doesn't exist. Close and reopen Lukma";
+                newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
+                newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
+            }
+
+            UpdateConfigPaths();
+            //Debug.WriteLine("done reading config file");
+        }
+
+        //Sets a few defautls
+        //   sets different defaults based on windows or Mac
+        public void SetDefaultConfigPaths()
+        {
+            configInfo.appDir = AppContext.BaseDirectory.ToString();
+            string baseConfigAndLogoDir = configInfo.appDir;
+            if (!winPlatform)
+            {
+                //I really want to store everything in /Users/Shared/Lukma
+                //Environment.SpecialFolder.CommonDocuments
+                baseConfigAndLogoDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"Lukma");
+                newUtil.CopyConfigsForMac(baseConfigAndLogoDir, configInfo);
+            }
+            
+            configInfo.configDir = Path.Combine(baseConfigAndLogoDir, "config");
+            configInfo.categoryFile = Path.Combine(configInfo.configDir, "Categories.txt");
+            configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
+            configInfo.logoDir = Path.Combine(baseConfigAndLogoDir, "logos");
             configInfo.customLogoFile = "customLogos.ini";
-            string aboveAppDir = Path.Combine(configInfo.appDir, "..");
+            
+
+            string aboveAppDir = Path.Combine(baseConfigAndLogoDir, "..");
+            //Conditional for Mac
+            if (!winPlatform)
+            {
+                configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg");
+                aboveAppDir = baseConfigAndLogoDir;
+            }
 
             //possible that these change
             configInfo.unconvertedVideoDir = Path.Combine(aboveAppDir, "videos");
             configInfo.convertedVideosTopDir = aboveAppDir;
             configInfo.customLogos = new Dictionary<string, string>();
-
-            bool errorWithConfigFile = false;
-            using (StreamReader sr = new(sConfigFile))
-            {
-                while (!sr.EndOfStream)
-                {
-                    string sLine = sr.ReadLine().Trim();
-                    string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
-                    if (aLine.Length == 2)
-                    {
-                        string sParameter = aLine[0].Trim();
-                        string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray()).Trim();
-                        sValue = sValue.Replace("\"", "");
-                        
-                        switch (sParameter)
-                        {
-                            case "catPathVar":
-                                if (File.Exists( Path.Combine(configInfo.configDir, sValue)) )
-                                {
-                                    configInfo.categoryFile = Path.Combine(configInfo.configDir, sValue);
-                                }
-                                else
-                                {
-                                    newUtil.UpdateConfigFile(configInfo, "catPathVar", configInfo.categoryFile);
-                                    errorWithConfigFile = true;
-                                }
-                                break;
-
-                            case "localVideoDir":
-                                if (Directory.Exists(sValue)) 
-                                {
-                                    configInfo.unconvertedVideoDir = sValue;
-                                }
-                                else
-                                {
-                                    newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
-                                    errorWithConfigFile = true;
-                                }
-
-                                break;
-
-                            case "convertedVideosTopDir":
-                                if (Directory.Exists(sValue))
-                                {
-                                    configInfo.convertedVideosTopDir = sValue;
-                                }
-                                else
-                                {
-                                    newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
-                                    errorWithConfigFile = true;
-                                }
-                                break;
-
-                            case "workingDirectoryVar":
-                                if (Directory.Exists(sValue))
-                                {
-                                    configInfo.workingDirectoryVar = sValue;
-                                }
-                                break;
-                            default: break;
-
-                        }
-
-                    }
-                    //
-                    else
-                    {
-                        Debug.WriteLine("Something is wrong in config file: " + sLine);
-                        Console.WriteLine("Something is wrong in config file: " + sLine);
-                    }
-                    if(errorWithConfigFile)
-                    {
-                        myErrorsOnLoad = "Errors found with settings file. Some options were reverted back to defaults";
-                    }
-
-                }
-            }
-            UpdateConfigPaths();
-            //Debug.WriteLine("done reading config file");
         }
-
         //-----Updates calculated paths
         //  general, team and private team uploads
         public void UpdateConfigPaths()
@@ -571,6 +598,11 @@ namespace xPlatformLukma
             string monthFolder = pickedDateTime.Month.ToString();
             string dateFolder = pickedDateTime.Day.ToString();
             string datePath = yearFolder + "\\" + monthFolder + "\\" + dateFolder;
+            //Conditional for mac
+            if (!winPlatform)
+            {
+                datePath = datePath.Replace('\\', '/');
+            }
 
             string videoQuality;
             if (combo_VideoQuality.IsEffectivelyVisible)
@@ -739,6 +771,11 @@ namespace xPlatformLukma
                     "-strict -2 " +
                     "-an \"" + videoDataConverting.UploadPath + "\"";
 
+                //Conditional for mac
+                if (!winPlatform)
+                {
+                    ffmpegArgs = ffmpegArgs.Replace('\\', '/');
+                }
 
                 //End of ffmpeg arguments creation
                 ffmpeg = new Process

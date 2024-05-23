@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia.Controls.Shapes;
 
 namespace xPlatformLukma
 {
@@ -43,7 +44,7 @@ namespace xPlatformLukma
         //Replaces and old line for a new line in the config file
         public void UpdateConfigFile(ConfigStruct aConfigInfo, string oldline, string updatedLine)
         {
-            string CatPath = Path.Combine(aConfigInfo.configDir, "config.txt");
+            string CatPath = System.IO.Path.Combine(aConfigInfo.configDir, "config.txt");
             if (File.Exists(CatPath))
             {
                 string[] lines = File.ReadLines(CatPath).ToArray();
@@ -65,7 +66,42 @@ namespace xPlatformLukma
             }
 
         }
+
+        public void CopyConfigsForMac(string MacDirectory, ConfigStruct aConfigInfo)
+        {
+            //string CatPath = System.IO.Path.Combine(aConfigInfo.configDir, "config.txt");
+
+            if (!Directory.Exists(MacDirectory))
+            {
+                //create directory
+                Directory.CreateDirectory(MacDirectory);
+                
+                //Copy config and logo directories
+                string configDir = System.IO.Path.Combine(aConfigInfo.appDir, "config");
+                string logoDir = System.IO.Path.Combine(aConfigInfo.appDir, "logos");
+                string macConfigDir = System.IO.Path.Combine(MacDirectory, "config");
+                string macLogoDir = System.IO.Path.Combine(MacDirectory, "logos");
+
+                CopyAllFiles(configDir, macConfigDir);
+                CopyAllFiles(logoDir, macLogoDir);
+            }
+        }
         
+        public void CopyAllFiles(string baseDirectory, string destinationDir)
+        {
+            var dir = new DirectoryInfo(baseDirectory);
+            
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDir);
+
+            // Get the files in the source directory and copy to the destination directory
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = System.IO.Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+        }
+
         //Reads the custom logos file and updates local structure
         public string ReadCustomLogos(ConfigStruct myConfigInfo)
         {
