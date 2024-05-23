@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -279,34 +280,43 @@ public partial class LogoWindow : Window
 
     private async Task<string> ReturnSeachFile()
     {
-        if (initLogoDirectory == null || !Directory.Exists(initLogoDirectory))
+        string sResult = "";
+        try
         {
-            initLogoDirectory = myConfigInfo.logoDir;
-        }
-        List<string> extension = new() { "png", "PNG" };
-        FileDialogFilter myFilter = new()
-        {
-            Extensions = extension
-        };
+            if (initLogoDirectory == null || !Directory.Exists(initLogoDirectory))
+            {
+                initLogoDirectory = myConfigInfo.logoDir;
+            }
+            List<string> extension = new() { "png", "PNG" };
+            FileDialogFilter myFilter = new()
+            {
+                Extensions = extension
+            };
 
-        List<FileDialogFilter> myFilters = new()
+            List<FileDialogFilter> myFilters = new()
             {
                 myFilter
             };
-        OpenFileDialog fileDlg = new()
-        {
-            Title = "Select png file",
-            AllowMultiple = false,
-            Filters = myFilters,
-        };
-        string[] result = await fileDlg.ShowAsync(this);
-        string sResult = "";
-        if (result.Length > 0)
-        {
-            sResult = result[0];
-            initLogoDirectory = System.IO.Path.GetDirectoryName(sResult);
-        }
+            OpenFileDialog fileDlg = new()
+            {
+                Title = "Select png file",
+                AllowMultiple = false,
+                Filters = myFilters,
+            };
+            string[] result = await fileDlg.ShowAsync(this);
+            
+            if (result.Length > 0)
+            {
+                sResult = result[0];
+                initLogoDirectory = System.IO.Path.GetDirectoryName(sResult);
+            }
 
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message.ToString());
+            Console.WriteLine(ex.Message.ToString());
+        }
         return sResult;
     }
 

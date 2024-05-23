@@ -237,7 +237,8 @@ namespace xPlatformLukma
             {
                 //I really want to store everything in /Users/Shared/Lukma
                 //Environment.SpecialFolder.CommonDocuments
-                baseConfigAndLogoDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"Lukma");
+                baseConfigAndLogoDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Public","Lukma");
+
                 newUtil.CopyConfigsForMac(baseConfigAndLogoDir, configInfo);
             }
             
