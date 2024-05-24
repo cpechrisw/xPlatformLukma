@@ -547,7 +547,8 @@ namespace xPlatformLukma
                     returnPath = configInfo.customLogos[catCombo];
                 }
             }
-            if(!File.Exists(returnPath))
+
+            if(returnPath != "" && !File.Exists(returnPath))
             {
                 //Throw error message
                 string msg = "Secondary logo was not found: " + returnPath;
@@ -623,8 +624,9 @@ namespace xPlatformLukma
 
 
             string fileName = CreateFileName();          //append unique identifier, resolution
-            string originalFile = fileName + ".mp4";
-            fileName += "_" + videoQuality + ".mp4";
+            string extension = Path.GetExtension(currentVideoPath);
+            string originalFile = fileName + extension;
+            fileName += "_" + videoQuality + extension;
 
             string tmpStartSourcePath;
             string tmpStartUploadPath;
@@ -661,7 +663,7 @@ namespace xPlatformLukma
 
             string fileNameOnly = Path.GetFileNameWithoutExtension(sourcePathFile);
             string UploadNameOnly = Path.GetFileNameWithoutExtension(uploadPathFile);
-            string extension = Path.GetExtension(sourcePathFile);
+            
             string newSourcePathFile = sourcePathFile;
             string newUploadPathFile = uploadPathFile;
 
@@ -679,17 +681,19 @@ namespace xPlatformLukma
             //copy video from camera to HDD
             try
             {
-                
-                //FileSystem.CopyFile(OpenFileDialog1.FileName, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
-                FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
-
+                //FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.OnlyErrorDialogs);
+                FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"");
                 ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile));
 
             }
             catch (Exception ex)
             {
-                Debug.Write("During Save and before convert:" + ex.Message);
-                Console.Write("During Save and before convert:" + ex.Message);
+                string tmpString = "Error copying over file. " + ex.Message;
+                Debug.Write(tmpString + Environment.NewLine);
+                Console.Write(tmpString + Environment.NewLine);
+                _ = MessageBoxManager.GetMessageBoxStandard("Error", @"tmpString",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
             }       
 
             string secondaryLogoPath = GetSecondaryLogo();
@@ -789,8 +793,8 @@ namespace xPlatformLukma
                              UseShellExecute = false,
                              RedirectStandardOutput = true,
                              RedirectStandardError = true,
-                             CreateNoWindow = true,
-                             WorkingDirectory = configInfo.workingDirectoryVar
+                             CreateNoWindow = true
+                             //WorkingDirectory = configInfo.workingDirectoryVar
                          },
                     EnableRaisingEvents = false
                 };
@@ -860,7 +864,7 @@ namespace xPlatformLukma
         {
             string newFileName;
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
-            string nameCombo = combo_CatSubName.ToString();
+            string nameCombo = combo_CatSubName.SelectedValue.ToString();
             string dirtyFileName = "";
             if (catCombo == "Teams" || catCombo == "Teams - Private")  //shows dropbox for draw
             {
