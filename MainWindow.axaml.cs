@@ -829,7 +829,8 @@ namespace xPlatformLukma
             StreamReader reader = ffmpeg.StandardError;
             while ((line = reader.ReadLine()) != null)
             {
-                //Debug.WriteLine("From ffmpeg: " + line);        //for debug
+                //----DEBUG----//
+                //Debug.WriteLine("From ffmpeg: " + line);
 
                 if (!string.IsNullOrEmpty(line))
                 {
@@ -839,19 +840,26 @@ namespace xPlatformLukma
                         int length = line.IndexOf(", start:") - startPos;
                         string sub = line.Substring(startPos, length);
                         duration = sub;
-                        //Debug.WriteLine(duration);       //for Debugging
+                        //----DEBUG----//
+                        //Debug.WriteLine(duration);
                     }
                     if (line.Contains("frame=") && line.Contains("size=") && line.Contains("time="))
                     {
                         int startPos = line.LastIndexOf("time=") + "Time=".Length + 1;
                         int length = line.IndexOf(" bitrate=") - startPos;
                         string sub = line.Substring(startPos, length);
-                        current_duration = sub;
-                        //Debug.WriteLine(current_duration);       //for Debugging
-                        percent = Convert.ToInt32(Math.Round(TimeSpan.Parse(duration).TotalSeconds)) == 0 ? 0 :
-                            Convert.ToInt32(Math.Round((TimeSpan.Parse(current_duration).TotalSeconds * 100) / TimeSpan.Parse(duration).TotalSeconds, 5));
+                        
+                        if (sub.Contains(':'))
+                        {
+                            current_duration = sub;
+                            //----DEBUG----//
+                            //Debug.WriteLine(current_duration);
+                            percent = Convert.ToInt32(Math.Round(TimeSpan.Parse(duration).TotalSeconds)) == 0 ? 0 :
+                                Convert.ToInt32(Math.Round((TimeSpan.Parse(current_duration).TotalSeconds * 100) / TimeSpan.Parse(duration).TotalSeconds, 5));
+                            //----DEBUG----//
+                            //Debug.WriteLine("Conversion complete: " + percent);
+                        }
 
-                        //Debug.WriteLine("Conversion complete: " + percent);       //for Debugging
                     }
                 }
             }
