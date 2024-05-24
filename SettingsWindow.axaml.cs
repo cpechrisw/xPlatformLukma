@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using System;
 using System.IO;
 using System.Linq;
@@ -47,13 +48,25 @@ public partial class SettingsWindow : Window
     private async Task<string> ReturnSeachDirectory()
     {
         string tmpDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        var folderDlg = new OpenFolderDialog()
+        // Get top level from the current control
+        var topLevel = TopLevel.GetTopLevel(this);
+        var folderPathToStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(tmpDir);
+
+        var options = new FolderPickerOpenOptions
         {
-            Directory = tmpDir,
             Title = "Select output directory",
+            AllowMultiple = false,
+            SuggestedStartLocation = folderPathToStart
         };
-        return await folderDlg.ShowAsync(this);
-        
+
+        var folder = await topLevel.StorageProvider.OpenFolderPickerAsync(options);
+        string sResult = "";
+        if (folder.Count > 0)
+        {
+            sResult = folder[0].Path.ToString();
+        }
+
+        return sResult;
     }
 
 
@@ -77,22 +90,26 @@ public partial class SettingsWindow : Window
     private async void UnconvertedSearchButton_Click(object sender, EventArgs e)
     {
         string unconvertVideo = await ReturnSeachDirectory();
-        lbl_UnconvertedVideoDir.Content = unconvertVideo;
-        myConfigInfo.unconvertedVideoDir = unconvertVideo;
+        if (unconvertVideo !="")
+        {
+            lbl_UnconvertedVideoDir.Content = unconvertVideo;
+            myConfigInfo.unconvertedVideoDir = unconvertVideo;
 
-        //write change to
-        newUtil.UpdateConfigFile(myConfigInfo, "localVideoDir", unconvertVideo);
-
+            //write change to file
+            newUtil.UpdateConfigFile(myConfigInfo, "localVideoDir", unconvertVideo);
+        }
     }
 
     private async void ConvertedSearchButton_Click(object sender, EventArgs e)
     {
         string convertVideo = await ReturnSeachDirectory();
-        lbl_ConvertedVideoDir.Content = convertVideo;
-        myConfigInfo.convertedVideosTopDir = convertVideo;
+        if( convertVideo != ""){
+            lbl_ConvertedVideoDir.Content = convertVideo;
+            myConfigInfo.convertedVideosTopDir = convertVideo;
 
-        //write change to file
-        newUtil.UpdateConfigFile(myConfigInfo,"convertedVideosTopDir", convertVideo);
+            //write change to file
+            newUtil.UpdateConfigFile(myConfigInfo, "convertedVideosTopDir", convertVideo);
+        }
     }
 
     private void CloseButton_Click(object sender, EventArgs e)

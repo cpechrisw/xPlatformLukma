@@ -15,6 +15,7 @@ using Microsoft.VisualBasic.FileIO;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using System.Runtime.InteropServices;
+using Avalonia.Platform.Storage;
 
 namespace xPlatformLukma
 {
@@ -102,7 +103,7 @@ namespace xPlatformLukma
             categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
-            myErrorsOnLoad = myErrorsOnLoad + newUtil.ReadCustomLogos(configInfo);
+            myErrorsOnLoad += newUtil.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             
@@ -455,8 +456,10 @@ namespace xPlatformLukma
             date_DatePicker1.SelectedDate = DateTime.Now;
             lbl_VideoFile.Text = "";
 
-            completionTimer = new();
-            completionTimer.Interval = new TimeSpan(0,0,1);
+            completionTimer = new()
+            {
+                Interval = new TimeSpan(0, 0, 1)
+            };
             completionTimer.Tick += PercentCompleteTracker;
             completionTimer.Start();
             this.Opened += ShowErrorAfterLoad;
@@ -549,8 +552,7 @@ namespace xPlatformLukma
                 //Throw error message
                 string msg = "Secondary logo was not found: " + returnPath;
                 Debug.Write(msg);
-                 
-                var box = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
+                _ = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
                     MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
                     WindowStartupLocation.CenterOwner);
                 returnPath = "";
@@ -561,7 +563,7 @@ namespace xPlatformLukma
         public string GetPrimaryLogo()
         {
             string returnPath;
-                        
+
             if (configInfo.customLogos.ContainsKey("Primary"))
             {
                 returnPath = configInfo.customLogos["Primary"];
@@ -576,8 +578,7 @@ namespace xPlatformLukma
                 //Throw error message
                 string msg = "Primary Logo was not found: " + returnPath;
                 Debug.Write(msg);
-
-                var box = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
+                _ = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
                     MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
                     WindowStartupLocation.CenterOwner);
                 returnPath = "";
@@ -894,31 +895,27 @@ namespace xPlatformLukma
                 initVideoDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
 
-            List<string> extension = new() { "MP4", "mp4" };
-            FileDialogFilter myFilter = new()
-            {
-                Extensions = extension
-            };
-
-            List<FileDialogFilter> myFilters = new()
-            {
-                myFilter
-            };
-            OpenFileDialog fileDlg = new()
+            // Get top level from the current control
+            var topLevel = TopLevel.GetTopLevel(this);
+            var folderPathToStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(initVideoDirectory);
+            // Setting options            
+            var options = new FilePickerOpenOptions
             {
                 Title = "Select video file",
                 AllowMultiple = false,
-                Directory = initVideoDirectory,
-                Filters = myFilters,
+                SuggestedStartLocation = folderPathToStart,
+                FileTypeFilter = new FilePickerFileType[] { new("MP4 file") { Patterns = new[] { "*.mp4", "*.MP4" } } }
             };
-            string[] result = await fileDlg.ShowAsync(this);
-            string sResult = "";
-            if (result.Length>0)
-            {
-                sResult= result[0];
-                initVideoDirectory = Path.GetDirectoryName(sResult);
-            }
             
+            // Start async operation to open the dialog.
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(options);
+            string sResult = "";
+            if (files.Count > 0)
+            {
+                sResult = files[0].TryGetLocalPath();
+                initVideoDirectory = sResult;
+            }
+              
             return sResult;
 
         }

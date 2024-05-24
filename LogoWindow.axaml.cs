@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -280,43 +281,33 @@ public partial class LogoWindow : Window
 
     private async Task<string> ReturnSeachFile()
     {
+        
+        if (initLogoDirectory == null || !Directory.Exists(initLogoDirectory))
+        {
+            initLogoDirectory = myConfigInfo.logoDir;
+        }
+
+        // Get top level from the current control
+        var topLevel = TopLevel.GetTopLevel(this);
+        var folderPathToStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(initLogoDirectory);
+        // Setting options            
+        var options = new FilePickerOpenOptions
+        {
+            Title = "Select video file",
+            AllowMultiple = false,
+            SuggestedStartLocation = folderPathToStart,
+            FileTypeFilter = new FilePickerFileType[] { new("PNG file") { Patterns = new[] { "*.png", "*.PNG" } } }
+        };
+
+        // Start async operation to open the dialog.
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(options);
         string sResult = "";
-        try
+        if (files.Count > 0)
         {
-            if (initLogoDirectory == null || !Directory.Exists(initLogoDirectory))
-            {
-                initLogoDirectory = myConfigInfo.logoDir;
-            }
-            List<string> extension = new() { "png", "PNG" };
-            FileDialogFilter myFilter = new()
-            {
-                Extensions = extension
-            };
+            sResult = files[0].TryGetLocalPath();
+            initLogoDirectory = System.IO.Path.GetDirectoryName(sResult);        }
 
-            List<FileDialogFilter> myFilters = new()
-            {
-                myFilter
-            };
-            OpenFileDialog fileDlg = new()
-            {
-                Title = "Select png file",
-                AllowMultiple = false,
-                Filters = myFilters,
-            };
-            string[] result = await fileDlg.ShowAsync(this);
-            
-            if (result.Length > 0)
-            {
-                sResult = result[0];
-                initLogoDirectory = System.IO.Path.GetDirectoryName(sResult);
-            }
 
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message.ToString());
-            Console.WriteLine(ex.Message.ToString());
-        }
         return sResult;
     }
 
