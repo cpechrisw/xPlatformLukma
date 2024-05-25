@@ -884,10 +884,10 @@ namespace xPlatformLukma
                 {
                     dirtyFileName += nameCombo + " - ";   //starts filename with name from combo_CatSubName.Text so nameTheFile adds the draw after the person or team named there
                 }
-                //newFileName += txtb_Description.Text.Replace("\\", "-");
+                
                 dirtyFileName += txtb_Description.Text;
             }
-            newFileName = Regex.Replace(dirtyFileName, @"([^a-zA-Z0-9_]|^\s)", "-");
+            newFileName = Regex.Replace(dirtyFileName, @"([^a-zA-Z0-9_ ]|^\s)", "-");
 
             return newFileName;
         }
