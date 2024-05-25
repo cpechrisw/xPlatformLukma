@@ -531,10 +531,10 @@ namespace xPlatformLukma
             
             string returnPath = "";
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
-            string nameCombo = combo_CatSubName.SelectedValue.ToString();
+            
             if (catCombo == "Teams" || catCombo == "Teams - Private")
             {
-                //
+                string nameCombo = combo_CatSubName.SelectedValue.ToString();
                 if (configInfo.customLogos.ContainsKey(nameCombo))
                 {
                     returnPath = configInfo.customLogos[nameCombo];
@@ -616,13 +616,19 @@ namespace xPlatformLukma
             {
                 videoQuality = "480";
             }
-            //Figure out which radiobutton is selected
-            if (combo_CatSubName.SelectedValue.ToString() == "Rhythm")
+
+            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
+            string nameCombo = "";
+
+            if (sPanel_CatSubName.IsVisible)
             {
-                videoQuality = "480";
+                nameCombo = combo_CatSubName.SelectedValue.ToString();
+                if (nameCombo == "Rhythm")
+                {
+                    videoQuality = "480";
+                }
             }
-
-
+            
             string fileName = CreateFileName();          //append unique identifier, resolution
             string extension = Path.GetExtension(currentVideoPath);
             string originalFile = fileName + extension;
@@ -631,8 +637,6 @@ namespace xPlatformLukma
             string tmpStartSourcePath;
             string tmpStartUploadPath;
 
-            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
-            string nameCombo = combo_CatSubName.SelectedValue.ToString();
             if (catCombo == "Teams")    //structure for teams is team-folder/year/month/date/draw-resolution.mp4 
             {
                 tmpStartSourcePath = Path.Combine(configInfo.unconvertedVideoDir, nameCombo);     //Create teamPath
@@ -643,13 +647,11 @@ namespace xPlatformLukma
             {
                 tmpStartSourcePath = Path.Combine(configInfo.unconvertedVideoDir, nameCombo);                //Create PrivateteamPath
                 tmpStartUploadPath = Path.Combine(configInfo.PrivateTeamUploadTopFolder, nameCombo);    //Create PrivateTeamUploadPath
-
             }
             else
             {
                 tmpStartSourcePath = configInfo.unconvertedVideoDir;
                 tmpStartUploadPath = configInfo.generalCategoryDir;
-
             }
 
             sourcePath = Path.Combine(tmpStartSourcePath, datePath);
@@ -872,7 +874,6 @@ namespace xPlatformLukma
         {
             string newFileName;
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
-            string nameCombo = combo_CatSubName.SelectedValue.ToString();
             string dirtyFileName = "";
             if (catCombo == "Teams" || catCombo == "Teams - Private")  //shows dropbox for draw
             {
@@ -880,11 +881,14 @@ namespace xPlatformLukma
             }
             else
             {
-                if (nameCombo != "")
+                if (sPanel_CatSubName.IsVisible)
                 {
-                    dirtyFileName += nameCombo + " - ";   //starts filename with name from combo_CatSubName.Text so nameTheFile adds the draw after the person or team named there
+                    string nameCombo = combo_CatSubName.SelectedValue.ToString();
+                    if (nameCombo != "")
+                    {
+                        dirtyFileName += nameCombo + " - ";   //starts filename with name from combo_CatSubName.Text so nameTheFile adds the draw after the person or team named there
+                    }
                 }
-                
                 dirtyFileName += txtb_Description.Text;
             }
             newFileName = Regex.Replace(dirtyFileName, @"([^a-zA-Z0-9_ ]|^\s)", "-");

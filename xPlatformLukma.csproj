@@ -44,7 +44,7 @@
   
   <ItemGroup>
     <AvaloniaResource Update="Assets\ffmpeg.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AvaloniaResource>
     <AvaloniaResource Update="Assets\lukma_black.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
