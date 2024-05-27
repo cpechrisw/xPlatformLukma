@@ -16,6 +16,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using System.Runtime.InteropServices;
 using Avalonia.Platform.Storage;
+using Avalonia.Utilities;
 
 namespace xPlatformLukma
 {
@@ -139,8 +140,10 @@ namespace xPlatformLukma
             
             sConfigFile = Path.Combine(configInfo.configDir, "config.txt");
             bool errorWithConfigFile = false;
+
             if (File.Exists(sConfigFile))
             {
+                List<string[]> updateList = new List<string[]>();
                 using (StreamReader sr = new(sConfigFile))
                 {
                     while (!sr.EndOfStream)
@@ -152,7 +155,7 @@ namespace xPlatformLukma
                             string sParameter = aLine[0].Trim();
                             string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray()).Trim();
                             sValue = sValue.Replace("\"", "");
-
+                            
                             switch (sParameter)
                             {
                                 case "catPathVar":
@@ -162,32 +165,42 @@ namespace xPlatformLukma
                                     }
                                     else
                                     {
-                                        newUtil.UpdateConfigFile(configInfo, "catPathVar", configInfo.categoryFile);
+                                        //update this to rewrite this after it is done reading
+                                        string[] tmpStringArray = { "catPathVar", configInfo.categoryFile };
+                                        updateList.Add(tmpStringArray);
+                                        //newUtil.UpdateConfigFile(configInfo, "catPathVar", configInfo.categoryFile);
                                         errorWithConfigFile = true;
                                     }
                                     break;
 
                                 case "localVideoDir":
-                                    if (Directory.Exists(sValue))
+                                    if (Directory.Exists( Directory.GetParent(sValue).FullName) )
                                     {
                                         configInfo.unconvertedVideoDir = sValue;
                                     }
                                     else
                                     {
-                                        newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
+                                        //update this to rewrite this after it is done reading
+                                        string[] tmpStringArray = { "localVideoDir", configInfo.unconvertedVideoDir };
+                                        updateList.Add(tmpStringArray);
+                                        //newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
                                         errorWithConfigFile = true;
                                     }
 
                                     break;
 
                                 case "convertedVideosTopDir":
-                                    if (Directory.Exists(sValue))
+                                    string tmpString = Directory.GetParent(sValue).FullName;
+                                    if (Directory.Exists(tmpString))
                                     {
                                         configInfo.convertedVideosTopDir = sValue;
                                     }
                                     else
                                     {
-                                        newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
+                                        //update this to rewrite this after it is done reading
+                                        string[] tmpStringArray = { "convertedVideosTopDir", configInfo.convertedVideosTopDir };
+                                        updateList.Add(tmpStringArray);
+                                        //newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
                                         errorWithConfigFile = true;
                                     }
                                     break;
@@ -213,6 +226,14 @@ namespace xPlatformLukma
                             myErrorsOnLoad = "Errors found with settings file. Some options were reverted back to defaults";
                         }
 
+                    }
+                }
+                if (updateList.Count > 0)
+                {
+                    foreach (string[] tmpString in updateList)
+                    {
+                        //!!!!!!!!!!!!!!TEST thins!!!!!!!!!!!!!!!!!
+                        newUtil.UpdateConfigFile(configInfo, tmpString[0], tmpString[1]);
                     }
                 }
 
@@ -248,9 +269,11 @@ namespace xPlatformLukma
             configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg.exe");
             configInfo.logoDir = Path.Combine(baseConfigAndLogoDir, "logos");
             configInfo.customLogoFile = "customLogos.ini";
-            
 
-            string aboveAppDir = Path.Combine(baseConfigAndLogoDir, "..");
+
+            var tmp = Directory.GetParent(baseConfigAndLogoDir);
+            string aboveAppDir = Directory.GetParent(baseConfigAndLogoDir).Parent.FullName;
+                //Path.Combine(baseConfigAndLogoDir, "..");
             //Conditional for Mac
             if (!winPlatform)
             {

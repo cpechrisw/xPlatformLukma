@@ -63,7 +63,7 @@ public partial class SettingsWindow : Window
         string sResult = "";
         if (folder.Count > 0)
         {
-            sResult = folder[0].Path.ToString();
+            sResult = folder[0].Path.LocalPath;
         }
 
         return sResult;
