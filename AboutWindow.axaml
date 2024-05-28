@@ -30,7 +30,10 @@
 	<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,10,0,0">
 		<StackPanel Orientation="Vertical" >
 			<TextBlock Text="Lukma" HorizontalAlignment="Center"/>
-			<Label Content="Copyright 2023" FontSize="10" Margin="0,-1,0,0"/>
+			<Label Content="Copyright 2024" FontSize="10" Margin="0,-1,0,0"/>
+			<TextBlock Text="Copying/Distributing without authors consent" HorizontalAlignment="Center"/>
+			<TextBlock Text=" is prohibited" 
+					   HorizontalAlignment="Center" />
 			<Label Content="For help or information contact" Margin="0,15,0,5"/>
 			<Label Content="chris@rhythmskydiving.com"/>
 			<Label Content="knjump@gmail.com" Margin="0,-4,0,0"/>
