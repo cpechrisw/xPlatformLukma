@@ -174,7 +174,9 @@ namespace xPlatformLukma
                                     break;
 
                                 case "localVideoDir":
-                                    if (Directory.Exists( Directory.GetParent(sValue).FullName) )
+                                    
+                                    string tmpVar = Path.GetPathRoot(sValue);
+                                    if ( Directory.Exists(tmpVar) )
                                     {
                                         configInfo.unconvertedVideoDir = sValue;
                                     }
@@ -190,7 +192,7 @@ namespace xPlatformLukma
                                     break;
 
                                 case "convertedVideosTopDir":
-                                    string tmpString = Directory.GetParent(sValue).FullName;
+                                    string tmpString = Path.GetPathRoot(sValue);
                                     if (Directory.Exists(tmpString))
                                     {
                                         configInfo.convertedVideosTopDir = sValue;
@@ -232,7 +234,6 @@ namespace xPlatformLukma
                 {
                     foreach (string[] tmpString in updateList)
                     {
-                        //!!!!!!!!!!!!!!TEST thins!!!!!!!!!!!!!!!!!
                         newUtil.UpdateConfigFile(configInfo, tmpString[0], tmpString[1]);
                     }
                 }
