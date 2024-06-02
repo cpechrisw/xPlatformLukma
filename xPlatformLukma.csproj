@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+	<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Nullable>disable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -45,7 +46,7 @@
   
   <ItemGroup>
     <AvaloniaResource Update="Assets\ffmpeg.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AvaloniaResource>
     <AvaloniaResource Update="Assets\lukma_black.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
