@@ -112,7 +112,7 @@ namespace xPlatformLukma
 
         }
         
-        public bool IsPlatformWindows()
+        public static bool IsPlatformWindows()
         {
             return System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         }
@@ -143,7 +143,7 @@ namespace xPlatformLukma
 
             if (File.Exists(sConfigFile))
             {
-                List<string[]> updateList = new List<string[]>();
+                List<string[]> updateList = new();
                 using (StreamReader sr = new(sConfigFile))
                 {
                     while (!sr.EndOfStream)
@@ -271,8 +271,6 @@ namespace xPlatformLukma
             configInfo.logoDir = Path.Combine(baseConfigAndLogoDir, "logos");
             configInfo.customLogoFile = "customLogos.ini";
 
-
-            var tmp = Directory.GetParent(baseConfigAndLogoDir);
             string aboveAppDir = Directory.GetParent(baseConfigAndLogoDir).Parent.FullName;
                 //Path.Combine(baseConfigAndLogoDir, "..");
             //Conditional for Mac
