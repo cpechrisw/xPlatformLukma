@@ -6,7 +6,7 @@
     <Nullable>disable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <Copyright>2023</Copyright>
+    <Copyright>2024</Copyright>
     <ApplicationIcon>Assets\lukma_black.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>AnyCPU;x64</Platforms>
@@ -21,6 +21,7 @@
 
   <PropertyGroup>
     <UseAppHost>true</UseAppHost>
+    <PackageIcon>lukma_black.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -78,6 +79,10 @@
 
 
   <ItemGroup>
+    <None Update="Assets\lukma_black.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Assets\SDC2.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
