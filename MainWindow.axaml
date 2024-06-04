@@ -11,7 +11,7 @@
 		x:Name="xMainPage"
 		RequestedThemeVariant="Dark"
         Title="Lukma"
-		Icon="/Assets/lukma_black.ico">
+		Icon="/Assets/lukma_black.png">
 	
 	<!--Shared Menu Definition-->
 	<Window.Resources>
