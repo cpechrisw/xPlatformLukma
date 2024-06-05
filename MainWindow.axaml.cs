@@ -241,7 +241,7 @@ namespace xPlatformLukma
             }
             else        //File doesn't exist, write it out
             {
-                myErrorsOnLoad = "Error: Settings file doesn't exist. Close and reopen Lukma";
+                myErrorsOnLoad += "Error: Settings file doesn't exist. Close and reopen Lukma";
                 newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
                 newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
             }
@@ -276,7 +276,25 @@ namespace xPlatformLukma
             //Conditional for Mac
             if (!winPlatform)
             {
-                configInfo.ffmpegLocation = Path.Combine(configInfo.appDir, "Assets", "ffmpeg");
+                string tmpPath = Path.Combine(configInfo.appDir, "Assets", "ffmpeg");
+                if (File.Exists(tmpPath))
+                {
+                    configInfo.ffmpegLocation = tmpPath;
+                }
+                else
+                {
+                    tmpPath = Path.Combine(configInfo.appDir, "../Resources/Assets", "ffmpeg");
+                    if (File.Exists(tmpPath))
+                    {
+                        configInfo.ffmpegLocation = tmpPath;
+                    }
+                    else
+                    {
+                        myErrorsOnLoad += "Error: ffmpeg could NOT be found. Install is corrupt!";
+                    }
+
+                }
+                
                 aboveAppDir = baseConfigAndLogoDir;
             }
 
@@ -575,9 +593,7 @@ namespace xPlatformLukma
                 //Throw error message
                 string msg = "Secondary logo was not found: " + returnPath;
                 Debug.Write(msg);
-                _ = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
-                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
-                    WindowStartupLocation.CenterOwner);
+                ShowErrorMessage(msg);
                 returnPath = "";
             }
             return returnPath;
@@ -601,9 +617,7 @@ namespace xPlatformLukma
                 //Throw error message
                 string msg = "Primary Logo was not found: " + returnPath;
                 Debug.Write(msg);
-                _ = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
-                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
-                    WindowStartupLocation.CenterOwner);
+                ShowErrorMessage(msg);
                 returnPath = "";
             }
             return returnPath;
@@ -715,9 +729,8 @@ namespace xPlatformLukma
                 string tmpString = "Error copying over file. " + ex.Message;
                 Debug.Write(tmpString + Environment.NewLine);
                 Console.Write(tmpString + Environment.NewLine);
-                _ = MessageBoxManager.GetMessageBoxStandard("Error", @"tmpString",
-                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
-                    WindowStartupLocation.CenterOwner);
+                ShowErrorMessage(tmpString);
+                
             }       
 
             string secondaryLogoPath = GetSecondaryLogo();
@@ -760,57 +773,67 @@ namespace xPlatformLukma
 
             string logo1 = GetPrimaryLogo();
 
-            Task converter = Task.Run(() =>                   //convert video to lower res
+            if (!File.Exists(configInfo.ffmpegLocation))
             {
-
-                //   Building the argument list
-                //          Places the images in the center
-                string ffmpegArgs = "-i \"" + videoDataConverting.SourcePath + "\" ";
-                string scalingOnce = "";
-                string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
-
-                if (videoDataConverting.Resolution != "1080")
+                string tmpMsg = "ffmpeg could not be found. Your install is corrupted";
+                ListOfFiles.Remove(videoDataConverting);
+                ShowErrorMessage(tmpMsg);
+                
+            }
+            else
+            {
+                Task converter = Task.Run(() =>                   //convert video to lower res
                 {
-                    //If the image needs to be scaled
-                    scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
-                    scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
-                }
 
-                if (videoDataConverting.SecondaryLogoPath != "")
-                {
-                    string logo2 = videoDataConverting.SecondaryLogoPath;
-                    ffmpegArgs = ffmpegArgs +
-                    "-i \"" + logo1 + "\" " +
-                        "-i \"" + logo2 + "\" " +
-                        scalingTwice;
-                }
-                else
-                {
-                    ffmpegArgs = ffmpegArgs +
+                    //   Building the argument list
+                    //          Places the images in the center
+                    string ffmpegArgs = "-i \"" + videoDataConverting.SourcePath + "\" ";
+                    string scalingOnce = "";
+                    string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+
+                    if (videoDataConverting.Resolution != "1080")
+                    {
+                        //If the image needs to be scaled
+                        scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
+                        scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+                    }
+
+                    if (videoDataConverting.SecondaryLogoPath != "")
+                    {
+                        string logo2 = videoDataConverting.SecondaryLogoPath;
+                        ffmpegArgs = ffmpegArgs +
                         "-i \"" + logo1 + "\" " +
-                        //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
-                        //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
-                        "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
-                }
-                                
-                ffmpegArgs = ffmpegArgs +
-                    "-s hd" + videoDataConverting.Resolution + " " +
-                    "-c:v libx264 " +
-                    "-crf 23 " +
-                    "-c:a aac " +
-                    "-strict -2 " +
-                    "-an \"" + videoDataConverting.UploadPath + "\"";
+                            "-i \"" + logo2 + "\" " +
+                            scalingTwice;
+                    }
+                    else
+                    {
+                        ffmpegArgs = ffmpegArgs +
+                            "-i \"" + logo1 + "\" " +
+                            //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
+                            //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
+                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
+                    }
 
-                //Conditional for mac
-                if (!winPlatform)
-                {
-                    ffmpegArgs = ffmpegArgs.Replace('\\', '/');
-                }
+                    ffmpegArgs = ffmpegArgs +
+                        "-s hd" + videoDataConverting.Resolution + " " +
+                        "-c:v libx264 " +
+                        "-crf 23 " +
+                        "-c:a aac " +
+                        "-strict -2 " +
+                        "-an \"" + videoDataConverting.UploadPath + "\"";
 
-                //End of ffmpeg arguments creation
-                ffmpeg = new Process
-                {
-                    StartInfo =
+                    //Conditional for mac
+                    if (!winPlatform)
+                    {
+                        ffmpegArgs = ffmpegArgs.Replace('\\', '/');
+                    }
+                    //End of ffmpeg arguments creation
+
+
+                    ffmpeg = new Process
+                    {
+                        StartInfo =
                          {
                              FileName = configInfo.ffmpegLocation,
                              Arguments = ffmpegArgs,
@@ -820,30 +843,34 @@ namespace xPlatformLukma
                              CreateNoWindow = true
                              //WorkingDirectory = configInfo.workingDirectoryVar
                          },
-                    EnableRaisingEvents = false
-                };
+                        EnableRaisingEvents = false
+                    };
 
-                ffmpeg.Start();
+                    ffmpeg.Start();
 
-                //for debuging purposes
-                //string stdout = ffmpeg.StandardOutput.ReadToEnd();
-                //string stderr = ffmpeg.StandardError.ReadToEnd();
-                try
-                {
-                    //Debug.WriteLine("Percent complete run");
-                    ShowPercentComplete();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("During show complete: " + ex.Message);
-                    Console.WriteLine("During show complete: " + ex.Message);
-                }
+                    //for debuging purposes
+                    //string stdout = ffmpeg.StandardOutput.ReadToEnd();
+                    //string stderr = ffmpeg.StandardError.ReadToEnd();
+                    try
+                    {
+                        //Debug.WriteLine("Percent complete run");
+                        ShowPercentComplete();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("During show complete: " + ex.Message);
+                        Console.WriteLine("During show complete: " + ex.Message);
+                    }
 
-                ListOfFiles.Remove(videoDataConverting);
-                ffmpeg.Dispose();       //Not sure if this is really needed
-                ConvertVideo();
-            });
-            await converter;
+                    ListOfFiles.Remove(videoDataConverting);
+                    ffmpeg.Dispose();       //Not sure if this is really needed
+                    ConvertVideo();
+                });
+                await converter;
+            }
+
+
+            
         }
 
         private void ShowPercentComplete()
@@ -1022,14 +1049,25 @@ namespace xPlatformLukma
         {
             if (myErrorsOnLoad != "")
             {
-                textBlock_quotesLabel.Text = myErrorsOnLoad;
-                /*
-                var box = MessageBoxManager.GetMessageBoxStandard("Error", @"msg",
+                //originally was just writing to the screen
+                //textBlock_quotesLabel.Text = myErrorsOnLoad;
+                
+                var box = MessageBoxManager.GetMessageBoxStandard("Error", myErrorsOnLoad,
                     MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
                     WindowStartupLocation.CenterOwner);
-                */
+                
+                box.ShowWindowAsync();
+                myErrorsOnLoad = "";
+
             }
 
+        }
+        private async void ShowErrorMessage(string tmpMsg)
+        {
+            var box = MessageBoxManager.GetMessageBoxStandard("Error", tmpMsg,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
+            await box.ShowWindowAsync();
         }
 
         private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)

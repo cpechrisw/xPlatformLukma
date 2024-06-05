@@ -9,7 +9,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <Copyright>2024</Copyright>
     <!--<ApplicationIcon>Assets\lukma_outlined.ico</ApplicationIcon>-->
-    <ApplicationIcon>Assets\icon.icns</ApplicationIcon>
+    <ApplicationIcon>Assets\lukma_black.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>AnyCPU;x64</Platforms>
     <ReleaseVersion>1.1.0</ReleaseVersion>
