@@ -8,11 +8,12 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <Copyright>2024</Copyright>
-    <!--<ApplicationIcon>Assets\lukma_outlined.ico</ApplicationIcon>-->
-    <ApplicationIcon>Assets\lukma_black.ico</ApplicationIcon>
+	  <!--sudo rm -rfv /Library/Caches/com.apple.iconservices.store; sudo find /private/var/folders/ \( -name com.apple.dock.iconcache -or -name com.apple.iconservices \) -exec rm -rfv {} \; ; sleep 3;sudo touch /Applications/* ; killall Dock; killall Finder-->
+    <ApplicationIcon>Assets\lukma_outlined.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>AnyCPU;x64</Platforms>
     <ReleaseVersion>1.1.0</ReleaseVersion>
+	<RuntimeIdentifiers>win-x64;osx-x64</RuntimeIdentifiers>  
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <WarningLevel>4</WarningLevel>

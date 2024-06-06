@@ -1062,7 +1062,7 @@ namespace xPlatformLukma
             }
 
         }
-        private async void ShowErrorMessage(string tmpMsg)
+        private static async void ShowErrorMessage(string tmpMsg)
         {
             var box = MessageBoxManager.GetMessageBoxStandard("Error", tmpMsg,
                     MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,

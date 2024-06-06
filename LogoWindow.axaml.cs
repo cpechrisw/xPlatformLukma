@@ -112,17 +112,20 @@ public partial class LogoWindow : Window
     //
     //---------Helper Events
     //
-
+#nullable enable
     private void SetImage(Image? imageControl, string? sImageName)
     {
-        Bitmap img = null;
+        Bitmap? img = null;
         if (sImageName != null)
         {
             img = new Bitmap(sImageName);
         }
-        imageControl.Source = img;
+        if (imageControl != null) 
+        {
+            imageControl.Source = img;
+        }
     }
-
+#nullable disable
     private void NameComboBox_SelectedIndexChange(object sender, EventArgs e)
     {
         if(comboBox_Name.SelectedValue != null)
