@@ -845,8 +845,15 @@ namespace xPlatformLukma
                          },
                         EnableRaisingEvents = false
                     };
-
-                    ffmpeg.Start();
+                    try
+                    {
+                        ffmpeg.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Exception during ffmpeg.Start: " + ex.Message);
+                        ShowErrorMessage("Exception during ffmpeg.Start: " + ex.Message);
+                    }
 
                     //for debuging purposes
                     //string stdout = ffmpeg.StandardOutput.ReadToEnd();
