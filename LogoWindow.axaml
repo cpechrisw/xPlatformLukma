@@ -54,7 +54,7 @@
 						   VerticalAlignment="Center"/>				
 				</Border>
 				
-				<Label Content="Current Logo" HorizontalAlignment="Center"/>
+				<Label Content="Logo Being Used" HorizontalAlignment="Center"/>
 
 			</StackPanel>
 			<!--Buttons-->
@@ -74,7 +74,7 @@
 						   HorizontalAlignment="Center"
 						   VerticalAlignment="Center"/>
 				</Border>
-				<Label Content="New Logo" HorizontalAlignment="Center"/>
+				<Label Content="New Logo Preview" HorizontalAlignment="Center"/>
 			</StackPanel>
 			
 			
