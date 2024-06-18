@@ -46,9 +46,13 @@
   </ItemGroup>
   <ItemGroup>
       <AvaloniaResource Include="Assets\**" />
+      <AvaloniaResource Remove="Assets\ReadMe.txt" />
       <AvaloniaResource Update="Assets\lukma_black.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AvaloniaResource>
+      <None Update="Assets\ReadMe.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     <AvaloniaResource Update="Assets\ffmpeg*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AvaloniaResource>
