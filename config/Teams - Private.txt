@@ -1,5 +1,1 @@
 Rhythm
-Core
-VWR2022
-100WayClub
-SDC Matrix

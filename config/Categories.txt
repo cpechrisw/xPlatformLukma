@@ -3,4 +3,3 @@ FF Organizers
 RW Organizers
 Teams
 Teams - Private
-Movement Organizers
