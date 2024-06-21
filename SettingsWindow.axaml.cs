@@ -10,7 +10,7 @@ namespace xPlatformLukma;
 
 public partial class SettingsWindow : Window
 {
-    ConfigStruct myConfigInfo;
+    public ConfigStruct myConfigInfo;
     Utils newUtil;
     public SettingsWindow()
     {
@@ -24,14 +24,6 @@ public partial class SettingsWindow : Window
         ReadConfig();
         InitializeEvents();
     }
-
-    //btn_UnconvertedVideoDir
-    //lbl_UnconvertedVideoDir
-    //
-    //btn_ConvertedVideoDir
-    //lbl_ConvertedVideoDir
-    //
-    //btn_Close
 
     //
     //---------Helper functions
@@ -97,6 +89,7 @@ public partial class SettingsWindow : Window
 
             //write change to file
             newUtil.UpdateConfigFile(myConfigInfo, "localVideoDir", unconvertVideo);
+
         }
     }
 

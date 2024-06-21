@@ -996,7 +996,12 @@ namespace xPlatformLukma
         {
             Load_ComboBoxes();
         }
-
+        
+        private void ReloadConfigValues(ConfigStruct tmpConfigInfo)
+        {
+            this.configInfo = tmpConfigInfo;
+        }
+        
         private void CategoriesBox_SelectedIndexChanged(object sender, EventArgs e) //populate combo_CatSubName ComboBox and display correct labels and boxes
         {
             combo_CatSubName.SelectedIndex = -1;
@@ -1335,6 +1340,7 @@ namespace xPlatformLukma
         public void Menu_SettingsClick()
         {
             _settingsWindow = new(configInfo);
+            _settingsWindow.Closing += (sender, e) => ReloadConfigValues(_settingsWindow.myConfigInfo);
             _settingsWindow.Show();
         }
         public void Menu_LogoClick()
