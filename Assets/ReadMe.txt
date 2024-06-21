@@ -1,4 +1,11 @@
 ----------------------Lukma----------------------
+
+----Prerequisite for Lukma---
+Requires Microsoft .NET Runtime (minimum of 6.0)
+Windows will prompt you to install it. Manually can be found here: https://dotnet.microsoft.com/en-us/download/dotnet
+MacOS will be provided with Lukma or can be found manually above. Manually can be found here: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.31-macos-x64-installer
+
+
 ----After Install----
 1.	Make sure videos are being placed where you want them. From the top menu, go to ‘Configure->Settings’ to change this. 
 2.	Updated/Change logos. Go to ‘Configure->Logos’ from the top menu
