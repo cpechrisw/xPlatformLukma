@@ -582,9 +582,11 @@ namespace xPlatformLukma
             }
             else
             {
-                if (configInfo.customLogos.ContainsKey(catCombo))
+                string category = "Category";
+                if (configInfo.customLogos.ContainsKey(category))
                 {
-                    returnPath = configInfo.customLogos[catCombo];
+                    //previously was using catCombo
+                    returnPath = configInfo.customLogos[category];
                 }
             }
 
