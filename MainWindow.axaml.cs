@@ -107,8 +107,8 @@ namespace xPlatformLukma
             myErrorsOnLoad += newUtil.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
+            this.Opened += CheckLicense;
             
-                          
 
         }
         
@@ -506,6 +506,19 @@ namespace xPlatformLukma
 
             RandomQuote();
         }
+
+        private void CheckLicense(object sender, EventArgs e)
+        {
+            string configDir = configInfo.configDir;
+            License testLicense = new License(configDir);
+            //testLicense.WriteNewLicenseFile(configDir, 2025);
+            if (!testLicense.isLicValid() )
+            {
+                ShowErrorMessageAndClose("License has expired as of " + testLicense.getExpirationDate());
+            }
+        }
+
+
         private void ClearStuffAfterSave()
         {
             UpdateVideoPath("");
@@ -1082,7 +1095,22 @@ namespace xPlatformLukma
                     MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
                     WindowStartupLocation.CenterOwner);
             await box.ShowWindowAsync();
+
         }
+
+        private async void ShowErrorMessageAndClose(string tmpMsg)
+        {
+            var box = MessageBoxManager.GetMessageBoxStandard("Error", tmpMsg,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
+            
+            if (await box.ShowWindowAsync() == MsBox.Avalonia.Enums.ButtonResult.Ok)
+            {
+                CloseApp();
+            }
+
+        }
+
 
         private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
@@ -1141,15 +1169,19 @@ namespace xPlatformLukma
             
                 if ( await box.ShowWindowAsync() == MsBox.Avalonia.Enums.ButtonResult.Yes)
                 {
-                    _media?.Dispose();          //Checks if it's null and then runs Dispose
-                    _mp?.Dispose();
-                    _libVLC?.Dispose();
-                    if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
+                    CloseApp();
                 }
             }
 
         }
 
+        private void CloseApp()
+        {
+            _media?.Dispose();          //Checks if it's null and then runs Dispose
+            _mp?.Dispose();
+            _libVLC?.Dispose();
+            if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
+        }
 
 
         private void PercentCompleteTracker(object sender, EventArgs e)
@@ -1353,10 +1385,7 @@ namespace xPlatformLukma
 
     }
 
-    //---------
-    //---------Data Classes and DataStructures
-    //---------
-
+    
     //
     //---Timer Class and other functions specific to Timer
     //
