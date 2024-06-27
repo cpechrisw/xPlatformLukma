@@ -104,7 +104,7 @@ namespace xPlatformLukma
             categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
-            myErrorsOnLoad += newUtil.ReadCustomLogos(configInfo);
+            myErrorsOnLoad += " " + newUtil.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             this.Opened += CheckLicense;
@@ -290,7 +290,7 @@ namespace xPlatformLukma
                     }
                     else
                     {
-                        myErrorsOnLoad += "Error: ffmpeg could NOT be found. Install is corrupt!";
+                        myErrorsOnLoad += " Error: ffmpeg could NOT be found. Install is corrupt!";
                     }
 
                 }
@@ -511,7 +511,7 @@ namespace xPlatformLukma
         {
             string configDir = configInfo.configDir;
             License testLicense = new License(configDir);
-            //testLicense.WriteNewLicenseFile(configDir, 2025);
+            //testLicense.WriteNewLicenseFile(configDir, 2024);
             if (!testLicense.isLicValid() )
             {
                 ShowErrorMessageAndClose("License has expired as of " + testLicense.getExpirationDate());
