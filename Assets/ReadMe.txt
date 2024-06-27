@@ -16,6 +16,10 @@ MacOS will be provided with Lukma or can be found manually above. Manually can b
 ----Notes/Descriptions----
 
 ---Manually editing any config files is unsupported and will have unexpected consequences---
+license.ini files goes in the config directory.
+
+Trimming videos - Trim start must be before trim end.
+
 
 Settings dialog – Unconverted videos is where it will copy the video to before it gets converted. Teams will get their own directory. All other categories will be put in directory structure based on the date. Converted videos directory is the top level directory of where all converted videos get stored. Private teams get a separate directory. Teams gets a separate directory. All other categories go into another directory. From that top level directory ‘Teams’ category goes into ‘teamuploadvideos’ directory. From that top level directory ‘Teams - Private’ category goes into ‘privateteamuploadvideos’ directory. Allother categories go to an ‘uploadvideos’ directory.
 

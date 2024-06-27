@@ -36,6 +36,8 @@ namespace xPlatformLukma
         public string Resolution;
         public string SecondaryLogoPath;
         public DateTime FileCreated;
+        public string ClipStartTime;
+        public string ClipEndTime;
     }
 
     //Class of common functions that are used by multiple classes or dialogs

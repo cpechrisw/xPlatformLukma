@@ -31,9 +31,9 @@ namespace xPlatformLukma
         private bool winPlatform;            //1 if windows, 0 if not windows
         private string myErrorsOnLoad = "";      //specifically for load to show errors
         private Utils newUtil;              //used for common functions
-        
-        
-        private bool ENABLEVIDEOCUT = false; //Global varialble to enable/disable chopping of the video
+
+
+        private bool ENABLEVIDEOCUT = true; //Global varialble to enable/disable chopping of the video
 
         //----used in ShowPercentComplete when files are being converted
         private DispatcherTimer completionTimer;
@@ -44,8 +44,9 @@ namespace xPlatformLukma
         Process ffmpeg;
         bool FlagConverting = false;
         List<VideoData> ListOfFiles = new();
-        VideoData BillvideoData;				//Does NOT need to be Global
         VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
+        TimeSpan[] gVideoClip= { TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0) };
+        
 
         //----Video VLC variables
         public LibVLC _libVLC;
@@ -401,11 +402,7 @@ namespace xPlatformLukma
             try
             {
                 MediaPlayerPlayVideo(file);
-                                
-                //slider_VideoSlider
-
-                //Buttons
-                Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
+                //Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);      //not sure this is needed
 
             }
             catch (Exception ex)
@@ -413,17 +410,7 @@ namespace xPlatformLukma
                 Debug.Write("During play video " + ex.Message);
                 Console.Write("During play video " + ex.Message);
             }
-
-            /*VideoFileNameBox.Text = OpenFileDialog1.FileName;               //Show the chosen filename in a textbox
-            if (OpenFileDialog1.FileName != null
-                && OpenFileDialog1.FileName != "")
-            {
-                combo_CategoryComboBox.IsEnabled = true;
-            }
-            else
-            {
-                combo_CategoryComboBox.IsEnabled = false;
-            }*/
+            
         }
 
         private void MediaPlayerPlayVideo(string filename)
@@ -443,6 +430,12 @@ namespace xPlatformLukma
                 _mp.Mute = true;
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
+
+                
+                //UpdateClipLabels();
+                Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Normal);
+                
+                
             }
             else
             {
@@ -507,10 +500,22 @@ namespace xPlatformLukma
             completionTimer.Start();
             this.Opened += ShowErrorAfterLoad;
 
+
+            //Video Triming buttons
             if(!ENABLEVIDEOCUT)
             {
                 pnl_TimeClipping.IsVisible = false;
                 pnl_ClipButtons.IsVisible = false;
+            }
+            else
+            {
+                btn_VideoTrimStart.IsEnabled = false;
+                btn_VideoTrimEnd.IsEnabled = false;
+                btn_VideoTrimReset.IsEnabled = false;
+
+                btn_VideoTrimStart.Click += TrimStart_Click;
+                btn_VideoTrimEnd.Click += TrimEnd_Click;
+                btn_VideoTrimReset.Click += TrimReset_Click;
             }
 
 
@@ -538,7 +543,7 @@ namespace xPlatformLukma
             combo_CatSubName.SelectedIndex = -1;
             txtb_Description.Clear();
             btn_Save.IsEnabled = false;
-
+            
         }
         private void ClearStuff()
         {
@@ -561,6 +566,23 @@ namespace xPlatformLukma
             btn_VideoFF.IsEnabled = update;
             btn_VideoRestart.IsEnabled = update;
             slider_VideoSlider.IsEnabled = update;
+            
+            btn_VideoTrimStart.IsEnabled = update;
+            btn_VideoTrimEnd.IsEnabled = update;
+            btn_VideoTrimReset.IsEnabled = update;
+        }
+
+        private void UpdateClipLabels()
+        {
+            lbl_trimStart.Content = gVideoClip[0].ToString(@"mm\:ss");
+            lbl_trimEnd.Content = gVideoClip[1].ToString(@"mm\:ss");
+        }
+
+        private void ResetClipTimeVariables()
+        {
+            gVideoClip[0] = TimeSpan.FromSeconds(0);
+            gVideoClip[1] = TimeSpan.FromSeconds(0);
+            
         }
 
         //updates the global variable and updates the view label
@@ -761,14 +783,27 @@ namespace xPlatformLukma
 
             string secondaryLogoPath = GetSecondaryLogo();
 
+            string[] tmpClipTimes = {"",""};
+            if ( IsTrimValid() )
+            {
+                tmpClipTimes = GetTrimStartEnd();
+            }
+            else
+            {
+                ShowErrorMessage("Trim Start or End is not correct, they will be ignored");
+            }
+            
+
             //these next variables are named after my friend Bill, who introduced me to skydiving:
-            BillvideoData = new VideoData
+            VideoData BillvideoData = new VideoData
             {
                 SourcePath = newSourcePathFile,
                 UploadPath = newUploadPathFile,
                 Resolution = videoQuality,
                 SecondaryLogoPath = secondaryLogoPath,                                 //What is this really used for
-                FileCreated = DateTime.Now
+                FileCreated = DateTime.Now,
+                ClipStartTime = tmpClipTimes[0],
+                ClipEndTime = tmpClipTimes[1]
             };
 
             ListOfFiles ??= new List<VideoData>();
@@ -823,7 +858,7 @@ namespace xPlatformLukma
                         scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
                         scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
                     }
-
+                                        
                     if (videoDataConverting.SecondaryLogoPath != "")
                     {
                         string logo2 = videoDataConverting.SecondaryLogoPath;
@@ -841,12 +876,18 @@ namespace xPlatformLukma
                             "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
                     }
 
+                    if (videoDataConverting.ClipStartTime != "")
+                    {
+                        string trimArg = "-ss " + videoDataConverting.ClipStartTime + " -to " + videoDataConverting.ClipEndTime + " ";
+                        ffmpegArgs += trimArg;
+                    }
+
                     ffmpegArgs = ffmpegArgs +
                         "-s hd" + videoDataConverting.Resolution + " " +
                         "-c:v libx264 " +
                         "-crf 23 " +
-                        "-c:a aac " +
-                        "-strict -2 " +
+                        //"-c:a aac " +
+                        //"-strict -2 " +
                         "-an \"" + videoDataConverting.UploadPath + "\"";
 
                     //Conditional for mac
@@ -976,6 +1017,28 @@ namespace xPlatformLukma
             newFileName = Regex.Replace(dirtyFileName, @"([^a-zA-Z0-9_ ]|^\s)", "-");
 
             return newFileName;
+        }
+
+        private bool IsTrimValid()
+        {
+            bool rtn = false;
+
+            int iCompare = TimeSpan.Compare(gVideoClip[0], gVideoClip[1]);
+            if (iCompare < 0)
+            {
+                rtn = true;
+            }
+
+            return rtn;
+        }
+        
+        public string[] GetTrimStartEnd()
+        {
+            string[] tmpString = new string[2];
+            tmpString[0] = gVideoClip[0].ToString(@"hh\:mm\:ss\.fff");
+            tmpString[1] = gVideoClip[1].ToString(@"hh\:mm\:ss\.fff");
+
+            return tmpString;
         }
 
         //---------
@@ -1148,6 +1211,7 @@ namespace xPlatformLukma
             slider_VideoSlider.ValueChanged += SL_TimeChanged;
 
         }
+        
         private async void DescriptionTextBox_TextChanged(object sender, EventArgs e)
         {
             if (txtb_Description.Text.Length > 0)
@@ -1156,6 +1220,7 @@ namespace xPlatformLukma
             { btn_Save.IsEnabled = false; }
         }
 
+        
         //
         //---------App is closing, clean needs to happen
         //
@@ -1215,14 +1280,17 @@ namespace xPlatformLukma
             {
                 combo_CategoryComboBox.IsEnabled = true;
                 UpdateVideoPath(sResult);
+                ResetClipTimeVariables();
                 PlayVideo(sResult);
             }
 
         }
+        
         private void ClearButton_Click(object sender, EventArgs e)
         {
             ClearStuff();
         }
+        
         private void SaveButton_Click(object sender, EventArgs e)
         {
             SaveButtonHelper();
@@ -1253,6 +1321,7 @@ namespace xPlatformLukma
                 _mp.Position = 0;
             }
         }
+        
         private void VideoRwd_Click(object sender, EventArgs e)
         {
             float vlc_currentPos = _mp.Position;
@@ -1275,6 +1344,41 @@ namespace xPlatformLukma
             }
             //_mp.SetPosition(vlc_newPos);
             _mp.Position = vlc_newPos;
+        }
+
+        private void TrimStart_Click(object sender, EventArgs e)
+        {
+            if (_mp.State != VLCState.Error)
+            {
+                TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
+
+                gVideoClip[0] = currentTime;
+                lbl_trimStart.Content = currentTime.ToString(@"mm\:ss");
+                //Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Background);
+
+            }
+        }
+
+        private void TrimEnd_Click(object sender, EventArgs e)
+        {
+            if (_mp.State != VLCState.Error)
+            {
+                TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
+
+                gVideoClip[1] = currentTime;
+                lbl_trimEnd.Content = currentTime.ToString(@"mm\:ss");
+                //Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Background);
+            }
+        }
+
+        private void TrimReset_Click(object sender, EventArgs e)
+        {
+            if (_mp.State != VLCState.Error)
+            {
+                ResetClipTimeVariables();
+                UpdateClipLabels();
+                //Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Background);
+            }
         }
 
         //
