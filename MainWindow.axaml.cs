@@ -31,6 +31,9 @@ namespace xPlatformLukma
         private bool winPlatform;            //1 if windows, 0 if not windows
         private string myErrorsOnLoad = "";      //specifically for load to show errors
         private Utils newUtil;              //used for common functions
+        
+        
+        private bool ENABLEVIDEOCUT = false; //Global varialble to enable/disable chopping of the video
 
         //----used in ShowPercentComplete when files are being converted
         private DispatcherTimer completionTimer;
@@ -104,7 +107,7 @@ namespace xPlatformLukma
             categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
-            myErrorsOnLoad += " " + newUtil.ReadCustomLogos(configInfo);
+            myErrorsOnLoad += "" + newUtil.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             this.Opened += CheckLicense;
@@ -503,6 +506,14 @@ namespace xPlatformLukma
             completionTimer.Tick += PercentCompleteTracker;
             completionTimer.Start();
             this.Opened += ShowErrorAfterLoad;
+
+            if(!ENABLEVIDEOCUT)
+            {
+                pnl_TimeClipping.IsVisible = false;
+                pnl_ClipButtons.IsVisible = false;
+            }
+
+
 
             RandomQuote();
         }
@@ -1076,14 +1087,7 @@ namespace xPlatformLukma
         {
             if (myErrorsOnLoad != "")
             {
-                //originally was just writing to the screen
-                //textBlock_quotesLabel.Text = myErrorsOnLoad;
-                
-                var box = MessageBoxManager.GetMessageBoxStandard("Error", myErrorsOnLoad,
-                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
-                    WindowStartupLocation.CenterOwner);
-                
-                box.ShowWindowAsync();
+                ShowErrorMessage(myErrorsOnLoad);
                 myErrorsOnLoad = "";
 
             }

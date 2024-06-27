@@ -126,7 +126,7 @@ namespace xPlatformLukma
                             string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
                             //May also have to replace slashes here
                             if (!File.Exists(sValue))
-                                returnError = "Error, logo for " + sParameter + " is missing";
+                                returnError = " Error, logo for " + sParameter + " is missing";
 
                             if (!myConfigInfo.customLogos.ContainsKey(sParameter) && File.Exists(sValue))
                             {
