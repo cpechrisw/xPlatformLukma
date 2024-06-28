@@ -45,8 +45,10 @@ namespace xPlatformLukma
         bool FlagConverting = false;
         List<VideoData> ListOfFiles = new();
         VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
-        TimeSpan[] gVideoClip= { TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(0) };
-        
+        TimeSpan[] gVideoClip= { TimeSpan.Zero, TimeSpan.Zero };
+        Avalonia.Collections.AvaloniaList<double> gSliderTickList = new(0, 0);
+
+
 
         //----Video VLC variables
         public LibVLC _libVLC;
@@ -576,13 +578,16 @@ namespace xPlatformLukma
         {
             lbl_trimStart.Content = gVideoClip[0].ToString(@"mm\:ss");
             lbl_trimEnd.Content = gVideoClip[1].ToString(@"mm\:ss");
+            slider_VideoSlider.Ticks = gSliderTickList;
+            
         }
 
         private void ResetClipTimeVariables()
         {
-            gVideoClip[0] = TimeSpan.FromSeconds(0);
-            gVideoClip[1] = TimeSpan.FromSeconds(0);
-            
+            gVideoClip[0] = TimeSpan.Zero;
+            gVideoClip[1] = TimeSpan.Zero;
+            gSliderTickList[0] = 0;
+            gSliderTickList[1] = 0;
         }
 
         //updates the global variable and updates the view label
@@ -707,10 +712,6 @@ namespace xPlatformLukma
             if (sPanel_CatSubName.IsVisible)
             {
                 nameCombo = combo_CatSubName.SelectedValue.ToString();
-                if (nameCombo == "Rhythm")
-                {
-                    videoQuality = "480";
-                }
             }
             
             string fileName = CreateFileName();          //append unique identifier, resolution
@@ -784,15 +785,7 @@ namespace xPlatformLukma
             string secondaryLogoPath = GetSecondaryLogo();
 
             string[] tmpClipTimes = {"",""};
-            if ( IsTrimValid() )
-            {
-                tmpClipTimes = GetTrimStartEnd();
-            }
-            else
-            {
-                ShowErrorMessage("Trim Start or End is not correct, they will be ignored");
-            }
-            
+            tmpClipTimes = GetTrimStartEnd();
 
             //these next variables are named after my friend Bill, who introduced me to skydiving:
             VideoData BillvideoData = new VideoData
@@ -1022,11 +1015,17 @@ namespace xPlatformLukma
         private bool IsTrimValid()
         {
             bool rtn = false;
-
-            int iCompare = TimeSpan.Compare(gVideoClip[0], gVideoClip[1]);
-            if (iCompare < 0)
+            if (gVideoClip[0] == TimeSpan.Zero && gVideoClip[1] == TimeSpan.Zero)
             {
                 rtn = true;
+            }
+            else
+            {
+                int iCompare = TimeSpan.Compare(gVideoClip[0], gVideoClip[1]);
+                if (iCompare < 0)
+                {
+                    rtn = true;
+                }
             }
 
             return rtn;
@@ -1034,9 +1033,13 @@ namespace xPlatformLukma
         
         public string[] GetTrimStartEnd()
         {
-            string[] tmpString = new string[2];
-            tmpString[0] = gVideoClip[0].ToString(@"hh\:mm\:ss\.fff");
-            tmpString[1] = gVideoClip[1].ToString(@"hh\:mm\:ss\.fff");
+            string[] tmpString = {"",""};
+            if (gVideoClip[0] != TimeSpan.Zero && gVideoClip[1] != TimeSpan.Zero)
+            {
+
+                tmpString[0] = gVideoClip[0].ToString(@"hh\:mm\:ss\.fff");
+                tmpString[1] = gVideoClip[1].ToString(@"hh\:mm\:ss\.fff");
+            }
 
             return tmpString;
         }
@@ -1135,14 +1138,7 @@ namespace xPlatformLukma
             if (combo_CatSubName.SelectedIndex != -1)
             {
                 txtb_Description.IsEnabled = true;
-                if (combo_CatSubName.SelectedItem.ToString() == "Rhythm")
-                {
-                    pnl_VideoQuality.IsVisible = false;
-                }
-                else 
-                {
-                    pnl_VideoQuality.IsVisible = true; 
-                }
+                pnl_VideoQuality.IsVisible = true; 
             }
         }
 
@@ -1293,7 +1289,14 @@ namespace xPlatformLukma
         
         private void SaveButton_Click(object sender, EventArgs e)
         {
-            SaveButtonHelper();
+            if (IsTrimValid())
+            {
+                SaveButtonHelper();
+            }
+            else
+            {
+                ShowErrorMessage("Please fix or reset the video trim options");
+            }
         }
         //Gets the Path of the secondary logo, if it exists
         
@@ -1355,7 +1358,8 @@ namespace xPlatformLukma
                 gVideoClip[0] = currentTime;
                 lbl_trimStart.Content = currentTime.ToString(@"mm\:ss");
                 //Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Background);
-
+                gSliderTickList[0] = slider_VideoSlider.Value;
+                //slider_VideoSlider.Ticks = gSliderTickList;
             }
         }
 
@@ -1368,6 +1372,9 @@ namespace xPlatformLukma
                 gVideoClip[1] = currentTime;
                 lbl_trimEnd.Content = currentTime.ToString(@"mm\:ss");
                 //Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Background);
+
+                gSliderTickList[1] = slider_VideoSlider.Value;
+                //slider_VideoSlider.Ticks = tickList;
             }
         }
 
