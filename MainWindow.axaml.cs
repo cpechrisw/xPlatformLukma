@@ -531,7 +531,7 @@ namespace xPlatformLukma
         {
             string configDir = configInfo.configDir;
             License testLicense = new License(configDir);
-            //testLicense.WriteNewLicenseFile(configDir, 2024);
+            //testLicense.WriteNewLicenseFile(configDir, 2025);
             if (!testLicense.isLicValid() )
             {
                 ShowErrorMessageAndClose("License has expired as of " + testLicense.getExpirationDate());

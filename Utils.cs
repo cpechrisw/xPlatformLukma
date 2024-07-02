@@ -72,21 +72,31 @@ namespace xPlatformLukma
         public void CopyConfigsForMac(string MacDirectory, ConfigStruct aConfigInfo)
         {
             //string CatPath = System.IO.Path.Combine(aConfigInfo.configDir, "config.txt");
-
+            string configDir = System.IO.Path.Combine(aConfigInfo.appDir, "config");
+            string macConfigDir = System.IO.Path.Combine(MacDirectory, "config");
             if (!Directory.Exists(MacDirectory))
             {
                 //create directory
                 Directory.CreateDirectory(MacDirectory);
                 
                 //Copy config and logo directories
-                string configDir = System.IO.Path.Combine(aConfigInfo.appDir, "config");
+                
                 string logoDir = System.IO.Path.Combine(aConfigInfo.appDir, "logos");
-                string macConfigDir = System.IO.Path.Combine(MacDirectory, "config");
+                
                 string macLogoDir = System.IO.Path.Combine(MacDirectory, "logos");
 
                 CopyAllFiles(configDir, macConfigDir);
                 CopyAllFiles(logoDir, macLogoDir);
             }
+            //Specifically check and copy the license file
+            string lic = "license.ini";
+            if (!File.Exists(System.IO.Path.Combine(macConfigDir, lic)))
+            {
+                FileInfo aFile = new(System.IO.Path.Combine(configDir, lic));
+                aFile.CopyTo(System.IO.Path.Combine(macConfigDir, lic));
+            }
+
+
         }
         
         public void CopyAllFiles(string baseDirectory, string destinationDir)
