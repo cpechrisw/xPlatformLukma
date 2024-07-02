@@ -16,7 +16,7 @@ MacOS will be provided with Lukma or can be found manually above. Manually can b
 ----Notes/Descriptions----
 
 ---Manually editing any config files is unsupported and will have unexpected consequences---
-license.ini files goes in the config directory.
+license.ini files goes in the config directory. It should be in there after installation(Windows) or after invoking the application(MacOS)
 
 Trimming videos - Trim start must be before trim end. Both Start and End trim have to be defined. If they aren't, the video will not be processes.
 

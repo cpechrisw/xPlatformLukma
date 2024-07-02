@@ -45,8 +45,8 @@ namespace xPlatformLukma
         bool FlagConverting = false;
         List<VideoData> ListOfFiles = new();
         VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
-        TimeSpan[] gVideoClip= { TimeSpan.Zero, TimeSpan.Zero };
-        Avalonia.Collections.AvaloniaList<double> gSliderTickList = new(0, 0);
+        TimeSpan[] gVideoClip;
+        Avalonia.Collections.AvaloniaList<double> gSliderTickList;
 
 
 
@@ -88,7 +88,9 @@ namespace xPlatformLukma
             InitializeComponent();
             winPlatform = IsPlatformWindows();
             this.Closing += AppClosingTest;
-           
+            gSliderTickList = new(0, 0);
+            gVideoClip = new TimeSpan[] { TimeSpan.Zero, TimeSpan.Zero };
+
             //Screen related intializations
             int screenWidth = Screens.Primary.WorkingArea.Width;
             int screenHeight = Screens.Primary.WorkingArea.Height;
@@ -545,7 +547,8 @@ namespace xPlatformLukma
             combo_CatSubName.SelectedIndex = -1;
             txtb_Description.Clear();
             btn_Save.IsEnabled = false;
-            
+            combo_VideoQuality.SelectedIndex = 0;
+
         }
         private void ClearStuff()
         {
@@ -1138,7 +1141,11 @@ namespace xPlatformLukma
             if (combo_CatSubName.SelectedIndex != -1)
             {
                 txtb_Description.IsEnabled = true;
-                pnl_VideoQuality.IsVisible = true; 
+                pnl_VideoQuality.IsVisible = true;
+                if (combo_CatSubName.SelectedItem.ToString() == "Rhythm")
+                {
+                    combo_VideoQuality.SelectedIndex=1;
+                }
             }
         }
 

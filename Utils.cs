@@ -102,6 +102,7 @@ namespace xPlatformLukma
                 string targetFilePath = System.IO.Path.Combine(destinationDir, file.Name);
                 file.CopyTo(targetFilePath);
             }
+
         }
 
         //Reads the custom logos file and updates local structure
