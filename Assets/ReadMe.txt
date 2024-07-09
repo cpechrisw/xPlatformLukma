@@ -24,7 +24,7 @@ Settings dialog – Unconverted videos is where it will copy the video to before
 
 Categories and Names dialog – ‘Fun Jumper’ category is the only protected category. ‘Teams’ and ‘Teams – Private’ are handled differently but are not protected. All other categories are handled the same. If you create a new category, make sure to add a name in that category.
 
-
+Logo sizes are based on original video size. This is only noticeable if you change your camera settings or when multiple people are filming in different resolutions
 Logos dialog – This dialog allows you to change the standard logo on every video or add a secondary logo to a single team, private or regular team, or all other categories. New logos should not be any larger that 200x200 pixels in order to look correct on a 1080p video. The Current logo picture will show you what logo is being applied to whatever is selected on the left side. New logo gives you a preview of a logo that is selected after a search.
 	‘Primary’ – the primary logo that is used for all videos. One must exist otherwise the video will not be converted.
 	‘Category’ – All other categories except ‘Teams’ and ‘Private – Teams’

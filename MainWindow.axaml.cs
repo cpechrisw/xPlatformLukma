@@ -881,10 +881,11 @@ namespace xPlatformLukma
                     ffmpegArgs = ffmpegArgs +
                         "-s hd" + videoDataConverting.Resolution + " " +
                         "-c:v libx264 " +
-                        "-crf 23 " +
-                        //"-c:a aac " +
-                        //"-strict -2 " +
+                        "-crf 23 " +        //Set the quality/size tradeoff for constant-quality (no bitrate target) and constrained-quality (with maximum bitrate target) modes. Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
+                        //"-c:a aac " +     //audio to use aac
+                        //"-strict -2 " +   //Specify how strictly to follow the standards
                         "-an \"" + videoDataConverting.UploadPath + "\"";
+                        //
 
                     //Conditional for mac
                     if (!winPlatform)
@@ -1037,7 +1038,7 @@ namespace xPlatformLukma
         public string[] GetTrimStartEnd()
         {
             string[] tmpString = {"",""};
-            if (gVideoClip[0] != TimeSpan.Zero && gVideoClip[1] != TimeSpan.Zero)
+            if (gVideoClip[1] != TimeSpan.Zero)
             {
 
                 tmpString[0] = gVideoClip[0].ToString(@"hh\:mm\:ss\.fff");
