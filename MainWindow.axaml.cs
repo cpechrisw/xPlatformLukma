@@ -83,15 +83,11 @@ namespace xPlatformLukma
         protected override void OnOpened(EventArgs e)
         {
             const string appName = "xPlatformLukma";
-            
-
             new Mutex(true, appName, out bool createdNew);
 
             if (!createdNew)
             {
                 //app is already running! Exiting the application
-                
-                //this.Current.Shutdown();
                 if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
             }
 
@@ -162,6 +158,7 @@ namespace xPlatformLukma
             configInfo.ffmpegLocation =
             configInfo.workingDirectoryVar =
             "";
+            configInfo.bitRate = -1;
 
             //Setting defaults that should not change
             SetDefaultConfigPaths();
@@ -186,6 +183,21 @@ namespace xPlatformLukma
                             
                             switch (sParameter)
                             {
+                                case "bitrate":
+                                    int tmpInt = 0;
+                                    try
+                                    {
+                                        tmpInt = Int32.Parse(sValue);
+                                    }
+                                    catch(FormatException)
+                                    {
+                                        string[] tmpStringArray = { "bitrate", tmpInt.ToString() };
+                                        updateList.Add(tmpStringArray);
+                                        errorWithConfigFile = true;
+                                    }
+                                    configInfo.bitRate = tmpInt;
+                                    break;
+
                                 case "catPathVar":
                                     if (File.Exists(Path.Combine(configInfo.configDir, sValue)))
                                     {
@@ -272,9 +284,22 @@ namespace xPlatformLukma
                 myErrorsOnLoad += "Error: Settings file doesn't exist. Close and reopen Lukma";
                 newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
                 newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
+                newUtil.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
+
             }
 
             UpdateConfigPaths();
+
+            //-------
+            //Checking new config info variables and write them out if
+            //-------
+            if (configInfo.bitRate < 0)
+            {
+                configInfo.bitRate = 0;
+                newUtil.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
+            }
+
+
             //Debug.WriteLine("done reading config file");
         }
 
@@ -425,7 +450,7 @@ namespace xPlatformLukma
         {
             try
             {
-                MediaPlayerPlayVideo(file);
+                MediaPlayerPlayVideo(file, 0);
                 //Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);      //not sure this is needed
 
             }
@@ -437,7 +462,7 @@ namespace xPlatformLukma
             
         }
 
-        private void MediaPlayerPlayVideo(string filename)
+        private void MediaPlayerPlayVideo(string filename, long videoTime)
         {
 
             if (File.Exists(filename))
@@ -450,6 +475,7 @@ namespace xPlatformLukma
                                 
                 _mp.Play(_media);
                 _mp.TimeChanged += MP_TimeChanged;
+                _mp.Time = videoTime;
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
                 _media?.Dispose();
@@ -788,12 +814,15 @@ namespace xPlatformLukma
                 newUploadPathFile = Path.Combine(uploadPath, tempUploadName + extension);
                 count++;
             }
+            
+            
             //copy video from camera to HDD
             try
             {
                 //FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.OnlyErrorDialogs);
                 FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"");
-                ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile));
+                long currentVideoPosition = _mp.Time;
+                ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile, currentVideoPosition));
 
             }
             catch (Exception ex)
@@ -897,13 +926,13 @@ namespace xPlatformLukma
                         string trimArg = "-ss " + videoDataConverting.ClipStartTime + " -to " + videoDataConverting.ClipEndTime + " ";
                         ffmpegArgs += trimArg;
                     }
-
+                    string iBitrate = GetBitRate();
                     ffmpegArgs = ffmpegArgs +
                         "-s hd" + videoDataConverting.Resolution + " " +
                         "-c:v libx264 " +
-                        "-crf 23 " +        //Set the quality/size tradeoff for constant-quality (no bitrate target) and constrained-quality (with maximum bitrate target) modes. Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
-                        //"-c:a aac " +     //audio to use aac
-                        //"-strict -2 " +   //Specify how strictly to follow the standards
+                        "-crf " + iBitrate + " " +       //Set the quality/size tradeoff for constant-quality (no bitrate target) and constrained-quality (with maximum bitrate target) modes. Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
+                        //"-c:a aac " +             //audio to use aac
+                        //"-strict -2 " +           //Specify how strictly to follow the standards
                         "-an \"" + videoDataConverting.UploadPath + "\"";
                         //
 
@@ -962,6 +991,17 @@ namespace xPlatformLukma
 
 
             
+        }
+
+        private string GetBitRate()
+        {
+            string returnString = "23";
+            if(configInfo.bitRate == 1)
+            {
+                returnString = "20";
+            }
+
+            return returnString;
         }
 
         private void ShowPercentComplete()

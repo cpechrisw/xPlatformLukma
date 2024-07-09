@@ -24,6 +24,7 @@ namespace xPlatformLukma
         public string PrivateTeamUploadTopFolder;      //variable for converted file path for teams, uses convertedVideosTopDir
         public string ffmpegLocation;           //variable for ffmpeg.exe location
         public string workingDirectoryVar;      //variable for working directory used by ffmpeg
+        public int bitRate;                     //variable for storing bitrate.
 
         public Dictionary<string, string> customLogos;  //Used to house custom logos list
 
@@ -47,20 +48,31 @@ namespace xPlatformLukma
         public void UpdateConfigFile(ConfigStruct aConfigInfo, string oldline, string updatedLine)
         {
             string CatPath = System.IO.Path.Combine(aConfigInfo.configDir, "config.txt");
+            bool found = false;
             if (File.Exists(CatPath))
             {
                 string[] lines = File.ReadLines(CatPath).ToArray();
+                List<string> lineList = new();
                 for (int i = 0; i < lines.Length; i++)
                 {
                     if (lines[i].Contains(oldline))
                     {
+                        found = true;
                         string newLine = oldline + "=" + updatedLine;
                         lines[i] = newLine;
                     }
+                    lineList.Add(lines[i]);
+                }
+                
+                //if the line wasn't found, add it to the config file
+                if (!found)
+                {
+                    string addLine = oldline + "=" + updatedLine;
+                    lineList.Add(addLine);
                 }
 
                 //rewrite file
-                File.WriteAllText(CatPath, string.Join(Environment.NewLine, lines));
+                File.WriteAllText(CatPath, string.Join(Environment.NewLine, lineList ));
             }
             else
             {

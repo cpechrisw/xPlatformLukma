@@ -2,11 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="240"
-		Width="600" Height="240"
-		MinHeight="240"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="260"
+		Width="600" Height="260"
+		MinHeight="260"
 		MinWidth="600"
-		MaxHeight="240"
+		MaxHeight="260"
 		MaxWidth="1000"
         x:Class="xPlatformLukma.SettingsWindow"
         Title="Settings"
@@ -42,7 +42,15 @@
 			<Button Name="btn_ConvertedVideoDir" Content="Search"/>
 			<Label Name="lbl_ConvertedVideoDir" Content="Some such directory" ClipToBounds="True"/> 
 		</StackPanel>
-		<Button Name="btn_Close" Content="Close" Padding="10" Margin="0,25,0,0" HorizontalAlignment="Center"/>
+		<StackPanel Orientation="Horizontal" Margin="0,0,0,15" >
+			<Label Content="Bitrate: "></Label>
+			<ComboBox Name="combo_VideoBitrate"  PlaceholderText="Bitrate"
+				FontSize="10" Width="100" MaxDropDownHeight="200">
+			</ComboBox>
+			
+		</StackPanel>
+		
+		<Button Name="btn_Close" Content="Close" Padding="10" Margin="0,10,0,0" HorizontalAlignment="Center"/>
 	</StackPanel>
 	
 	

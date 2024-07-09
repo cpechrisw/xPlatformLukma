@@ -21,6 +21,7 @@ public partial class SettingsWindow : Window
     {
         myConfigInfo = configInfo;
         newUtil = new Utils();
+        Load_Bitrate_ComboBox();
         ReadConfig();
         InitializeEvents();
     }
@@ -72,12 +73,39 @@ public partial class SettingsWindow : Window
         btn_UnconvertedVideoDir.Click += UnconvertedSearchButton_Click;
         btn_ConvertedVideoDir.Click += ConvertedSearchButton_Click;
         btn_Close.Click += CloseButton_Click;
+        combo_VideoBitrate.SelectionChanged += BitrateCombo_SelectedIndexChanged;
 
     }
 
+    private void Load_Bitrate_ComboBox()
+    {
+        
+        combo_VideoBitrate.Items.Clear();
+        combo_VideoBitrate.Items.Add("Low");
+        combo_VideoBitrate.Items.Add("High");
+        if (myConfigInfo.bitRate < 0 || myConfigInfo.bitRate > 1)
+        {
+            combo_VideoBitrate.SelectedIndex = 0;
+            myConfigInfo.bitRate = 0;
+        }
+        else
+        {
+            combo_VideoBitrate.SelectedIndex = myConfigInfo.bitRate;
+        }
+
+    }
     //
     //---------Button Click Events
     //
+    private void BitrateCombo_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        int selectedIndex = combo_VideoBitrate.SelectedIndex;
+        myConfigInfo.bitRate = selectedIndex;
+        //write change to file
+        newUtil.UpdateConfigFile(myConfigInfo, "bitrate", selectedIndex.ToString());
+
+    }
+
 
     private async void UnconvertedSearchButton_Click(object sender, EventArgs e)
     {
