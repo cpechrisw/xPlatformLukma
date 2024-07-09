@@ -36,3 +36,13 @@ Logos dialog – This dialog allows you to change the standard logo on every vid
 Score the Dive – Timer can be adjusted up or down. If the timer has been manually adjusted and then used. Reset will revert it back to whatever it has been adjusted to. This is not saved, so if the program is closed and reopened, it will go back to 35 seconds.
 
 Questions or Issues, see the 'About' from the Configure->About menu
+
+
+
+----Version Information----
+
+----1.5.0----
+-Bug fix to Trim
+-Only allowing 1 instance of lukma to be open at a time
+-Force popup dialogs to be closed before moving on in Lukma
+-Add an option in Settings for lower or higher bitrate (reduces the file size by half at lower bitrate)default is lower bitrate

@@ -28,10 +28,10 @@ namespace xPlatformLukma
         private SettingsWindow _settingsWindow;
         private LogoWindow _logoWindow;
         private CategoriesWindow _categoriesWindow;
-        private bool winPlatform;            //1 if windows, 0 if not windows
+        private bool winPlatform;               //1 if windows, 0 if not windows
         private string myErrorsOnLoad = "";      //specifically for load to show errors
-        private Utils newUtil;              //used for common functions
-
+        private Utils newUtil;                  //used for common functions
+        
 
         private bool ENABLEVIDEOCUT = true; //Global varialble to enable/disable chopping of the video
 
@@ -79,6 +79,26 @@ namespace xPlatformLukma
                         
         }
 
+        //-----Verifying only 1 instance is running
+        protected override void OnOpened(EventArgs e)
+        {
+            const string appName = "xPlatformLukma";
+            
+
+            new Mutex(true, appName, out bool createdNew);
+
+            if (!createdNew)
+            {
+                //app is already running! Exiting the application
+                
+                //this.Current.Shutdown();
+                if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
+            }
+
+
+            base.OnOpened(e);
+        }
+        
         //---------
         //--------- functions
         //---------
@@ -530,7 +550,7 @@ namespace xPlatformLukma
         private void CheckLicense(object sender, EventArgs e)
         {
             string configDir = configInfo.configDir;
-            License testLicense = new License(configDir);
+            License testLicense = new(configDir);
             //testLicense.WriteNewLicenseFile(configDir, 2025);
             if (!testLicense.isLicValid() )
             {
@@ -791,7 +811,7 @@ namespace xPlatformLukma
             tmpClipTimes = GetTrimStartEnd();
 
             //these next variables are named after my friend Bill, who introduced me to skydiving:
-            VideoData BillvideoData = new VideoData
+            VideoData BillvideoData = new()
             {
                 SourcePath = newSourcePathFile,
                 UploadPath = newUploadPathFile,
@@ -1216,7 +1236,7 @@ namespace xPlatformLukma
 
         }
         
-        private async void DescriptionTextBox_TextChanged(object sender, EventArgs e)
+        private void DescriptionTextBox_TextChanged(object sender, EventArgs e)
         {
             if (txtb_Description.Text.Length > 0)
             { btn_Save.IsEnabled = true; }
@@ -1484,26 +1504,30 @@ namespace xPlatformLukma
         public void Menu_AboutClick()
         {
             AboutWindow aboutDialog = new();
-            aboutDialog.Show();
+            var ownerWindow = this;
+            aboutDialog.ShowDialog(ownerWindow);
         }
 
         public void Menu_CategoryNamesClick()
         {
             _categoriesWindow = new(configInfo, categoriesDic);
             _categoriesWindow.Closing += ReloadComboBoxes;
-            _categoriesWindow.Show();
+            var ownerWindow = this;
+            _categoriesWindow.ShowDialog(ownerWindow);
         }
 
         public void Menu_SettingsClick()
         {
             _settingsWindow = new(configInfo);
             _settingsWindow.Closing += (sender, e) => ReloadConfigValues(_settingsWindow.myConfigInfo);
-            _settingsWindow.Show();
+            var ownerWindow = this;
+            _settingsWindow.ShowDialog(ownerWindow);
         }
         public void Menu_LogoClick()
         {
             _logoWindow = new(configInfo, categoriesDic);
-            _logoWindow.Show();
+            var ownerWindow = this;
+            _logoWindow.ShowDialog(ownerWindow);
         }
 
     }

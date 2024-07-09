@@ -36,7 +36,6 @@
 					   HorizontalAlignment="Center" />
 			<Label Content="For help or information contact" Margin="0,15,0,5"/>
 			<Label Content="chris@rhythmskydiving.com"/>
-			<Label Content="knjump@gmail.com" Margin="0,-4,0,0"/>
 			<Button Click="ButtonClick_Close" Content="Close" Margin="0,15,0,0"/>
 		</StackPanel>
 	</StackPanel>
