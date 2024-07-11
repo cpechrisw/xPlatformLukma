@@ -38,6 +38,9 @@ Score the Dive – Timer can be adjusted up or down. If the timer has been manua
 Questions or Issues, see the 'About' from the Configure->About menu
 
 
+----Known Issues----
+Mac - Maximizing Lukma can cause video playback issues try using NSPrefersDisplaySafeAreaCompatibilityMode
+
 
 ----Version Information----
 
