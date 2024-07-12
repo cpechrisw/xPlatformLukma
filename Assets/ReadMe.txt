@@ -39,7 +39,7 @@ Questions or Issues, see the 'About' from the Configure->About menu
 
 
 ----Known Issues----
-Mac - Maximizing Lukma can cause video playback issues try using NSPrefersDisplaySafeAreaCompatibilityMode
+Mac - Maximizing Lukma can cause video playback issues
 
 
 ----Version Information----
