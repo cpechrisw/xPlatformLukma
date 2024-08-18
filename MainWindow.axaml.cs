@@ -1,6 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
+using Avalonia.Platform.Storage;
 using MsBox.Avalonia;
 using LibVLCSharp.Shared;
 using System;
@@ -12,11 +15,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic.FileIO;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Primitives;
 using System.Runtime.InteropServices;
-using Avalonia.Platform.Storage;
-using Avalonia.Utilities;
+using LibVLCSharp.Avalonia;
+
 
 namespace xPlatformLukma
 {
@@ -132,8 +133,9 @@ namespace xPlatformLukma
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             this.Opened += CheckLicense;
+            //Check for cleanup
+            RunCleanup();
             
-
         }
         
         public static bool IsPlatformWindows()
@@ -159,6 +161,7 @@ namespace xPlatformLukma
             configInfo.workingDirectoryVar =
             "";
             configInfo.bitRate = -1;
+            configInfo.cleanupAfterDays = -1;
 
             //Setting defaults that should not change
             SetDefaultConfigPaths();
@@ -196,8 +199,22 @@ namespace xPlatformLukma
                                         errorWithConfigFile = true;
                                     }
                                     configInfo.bitRate = tmpInt;
+                                    break; 
+                                
+                                case "cleanupAfterDays":
+                                    int tmpDays = 0;
+                                    try
+                                    {
+                                        tmpDays = Int32.Parse(sValue);
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        string[] tmpStringArray = { "cleanupAfterDays", tmpDays.ToString() };
+                                        updateList.Add(tmpStringArray);
+                                        errorWithConfigFile = true;
+                                    }
+                                    configInfo.cleanupAfterDays = tmpDays;
                                     break;
-
                                 case "catPathVar":
                                     if (File.Exists(Path.Combine(configInfo.configDir, sValue)))
                                     {
@@ -265,7 +282,7 @@ namespace xPlatformLukma
                         }
                         if (errorWithConfigFile)
                         {
-                            myErrorsOnLoad = "Errors found with settings file. Some options were reverted back to defaults";
+                            myErrorsOnLoad = "Errors found with settings file. Some settings were reverted back to defaults";
                         }
 
                     }
@@ -285,6 +302,7 @@ namespace xPlatformLukma
                 newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
                 newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
                 newUtil.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
+                newUtil.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.cleanupAfterDays.ToString());
 
             }
 
@@ -297,6 +315,11 @@ namespace xPlatformLukma
             {
                 configInfo.bitRate = 0;
                 newUtil.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
+            }
+            if (configInfo.cleanupAfterDays < 0)
+            {
+                configInfo.cleanupAfterDays = 0;
+                newUtil.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.bitRate.ToString());
             }
 
 
@@ -472,19 +495,15 @@ namespace xPlatformLukma
                 _media = new Media(_libVLC, filename);
 
                 //Video slider initialization
-                                
                 _mp.Play(_media);
+                
                 _mp.TimeChanged += MP_TimeChanged;
                 _mp.Time = videoTime;
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
-
-                
-                //UpdateClipLabels();
                 Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Normal);
-                
                 
             }
             else
@@ -502,7 +521,7 @@ namespace xPlatformLukma
                 _mp.Pause();
                 _mp.TimeChanged -= MP_TimeChanged;
                 slider_VideoSlider.ValueChanged -= SL_TimeChanged;
-
+                
                 //_mp?.Dispose();       //This is causing the popout
                 //_mp = new MediaPlayer(_libVLC);
                 //VideoViewer.MediaPlayer = _mp;
@@ -1108,6 +1127,25 @@ namespace xPlatformLukma
             return tmpString;
         }
 
+        public void RunCleanup()
+        {
+            
+            if (configInfo.cleanupAfterDays > 0)
+            {
+                //Are we converting files
+                //if(ListOfFiles.Count == 0)
+                //{
+                    FolderCleanup cleanupFolder = new FolderCleanup(configInfo.cleanupAfterDays, configInfo.unconvertedVideoDir);
+                    string cleanupErrors = cleanupFolder.CleanUpFolder();
+                    if (cleanupErrors != "")
+                    {
+                        ShowErrorMessage(cleanupErrors);
+                    }
+                //}
+                
+            }
+        }
+
         //---------
         //---------End of Helper functions
         //---------
@@ -1571,101 +1609,5 @@ namespace xPlatformLukma
         }
 
     }
-
     
-    //
-    //---Timer Class and other functions specific to Timer
-    //
-    //------ Timer and Points functions
-    //
-    //
-    
-    public class CountdownTimer  
-    {
-        public Action TimeChanged;
-        public Action CountDownFinished;
-
-        public bool IsRunning => pointsTimer.IsEnabled;
-
-        public double StepMs
-        {
-            get => pointsTimer.Interval.TotalMilliseconds;
-            set => pointsTimer.Interval = TimeSpan.FromMilliseconds(value);
-        }
-        
-        //
-        //-----------Need to change this
-        //
-        private readonly DispatcherTimer pointsTimer = new();
-
-        private DateTime _maxTime = new(1, 1, 1, 0, 0, 50);
-        private readonly DateTime _minTime = new(1, 1, 1, 0, 0, 0);
-
-        public DateTime TimeLeft { get; private set; }
-        private long TimeLeftMs => TimeLeft.Ticks / TimeSpan.TicksPerMillisecond;
-
-        public string TimeLeftStr => TimeLeft.ToString("mm:ss");
-        public string TimeLeftMsStr => TimeLeft.ToString("ss.f");
-        private void TimerTick(object sender, EventArgs e)
-        {
-            if (TimeLeftMs > pointsTimer.Interval.TotalMilliseconds)
-            {
-                TimeLeft = TimeLeft.AddMilliseconds(-pointsTimer.Interval.TotalMilliseconds);
-                TimeChanged?.Invoke();
-            }
-            else
-            {
-                Stop();
-                TimeLeft = _minTime;
-
-                TimeChanged?.Invoke();
-                CountDownFinished?.Invoke();
-            }
-        }
-        public CountdownTimer(int min, int sec)
-        {
-            SetTime(min, sec);
-            Init();
-        }
-        public CountdownTimer(DateTime dt)
-        {
-            SetTime(dt);
-            Init();
-        }
-        public CountdownTimer()
-        {
-            Init();
-        }
-        private void Init()
-        {
-            TimeLeft = _maxTime;
-
-            StepMs = 1000;
-            pointsTimer.Tick += new EventHandler(TimerTick);
-        }
-        public void SetTime(DateTime dt)
-        {
-            TimeLeft = _maxTime = dt;
-            TimeChanged?.Invoke();
-        }
-        public void SetTime(int min, int sec) => SetTime(new DateTime(1, 1, 1, 0, min, sec));
-        public void Start() => pointsTimer.Start();
-        public void Pause() => pointsTimer.Stop();
-        public void Stop()
-        {
-            Pause();
-            Reset();
-        }
-        public void Reset()
-        {
-            TimeLeft = _maxTime;
-        }
-        public void Restart()
-        {
-            Reset();
-            Start();
-        }
-        
-    }
-
 }

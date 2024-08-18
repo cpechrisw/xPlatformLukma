@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls.Shapes;
+using Avalonia.Threading;
 
 namespace xPlatformLukma
 {
@@ -25,6 +26,7 @@ namespace xPlatformLukma
         public string ffmpegLocation;           //variable for ffmpeg.exe location
         public string workingDirectoryVar;      //variable for working directory used by ffmpeg
         public int bitRate;                     //variable for storing bitrate.
+        public int cleanupAfterDays;            //How far back to look to delete old video files
 
         public Dictionary<string, string> customLogos;  //Used to house custom logos list
 
@@ -40,6 +42,102 @@ namespace xPlatformLukma
         public string ClipStartTime;
         public string ClipEndTime;
     }
+
+    //
+    //---Timer Class and other functions specific to Timer
+    //
+    //------ Timer and Points functions
+    //
+    //
+
+    public class CountdownTimer
+    {
+        public Action TimeChanged;
+        public Action CountDownFinished;
+
+        public bool IsRunning => pointsTimer.IsEnabled;
+
+        public double StepMs
+        {
+            get => pointsTimer.Interval.TotalMilliseconds;
+            set => pointsTimer.Interval = TimeSpan.FromMilliseconds(value);
+        }
+
+        //
+        //-----------Need to change this
+        //
+        private readonly DispatcherTimer pointsTimer = new();
+
+        private DateTime _maxTime = new(1, 1, 1, 0, 0, 50);
+        private readonly DateTime _minTime = new(1, 1, 1, 0, 0, 0);
+
+        public DateTime TimeLeft { get; private set; }
+        private long TimeLeftMs => TimeLeft.Ticks / TimeSpan.TicksPerMillisecond;
+
+        public string TimeLeftStr => TimeLeft.ToString("mm:ss");
+        public string TimeLeftMsStr => TimeLeft.ToString("ss.f");
+        private void TimerTick(object sender, EventArgs e)
+        {
+            if (TimeLeftMs > pointsTimer.Interval.TotalMilliseconds)
+            {
+                TimeLeft = TimeLeft.AddMilliseconds(-pointsTimer.Interval.TotalMilliseconds);
+                TimeChanged?.Invoke();
+            }
+            else
+            {
+                Stop();
+                TimeLeft = _minTime;
+
+                TimeChanged?.Invoke();
+                CountDownFinished?.Invoke();
+            }
+        }
+        public CountdownTimer(int min, int sec)
+        {
+            SetTime(min, sec);
+            Init();
+        }
+        public CountdownTimer(DateTime dt)
+        {
+            SetTime(dt);
+            Init();
+        }
+        public CountdownTimer()
+        {
+            Init();
+        }
+        private void Init()
+        {
+            TimeLeft = _maxTime;
+
+            StepMs = 1000;
+            pointsTimer.Tick += new EventHandler(TimerTick);
+        }
+        public void SetTime(DateTime dt)
+        {
+            TimeLeft = _maxTime = dt;
+            TimeChanged?.Invoke();
+        }
+        public void SetTime(int min, int sec) => SetTime(new DateTime(1, 1, 1, 0, min, sec));
+        public void Start() => pointsTimer.Start();
+        public void Pause() => pointsTimer.Stop();
+        public void Stop()
+        {
+            Pause();
+            Reset();
+        }
+        public void Reset()
+        {
+            TimeLeft = _maxTime;
+        }
+        public void Restart()
+        {
+            Reset();
+            Start();
+        }
+
+    }
+
 
     //Class of common functions that are used by multiple classes or dialogs
     internal class Utils

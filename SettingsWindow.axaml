@@ -2,11 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="260"
-		Width="600" Height="260"
-		MinHeight="260"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="310"
+		Width="600" Height="310"
+		MinHeight="310"
 		MinWidth="600"
-		MaxHeight="260"
+		MaxHeight="310"
 		MaxWidth="1000"
         x:Class="xPlatformLukma.SettingsWindow"
         Title="Settings"
@@ -32,9 +32,17 @@
 	
 	<StackPanel Orientation="Vertical" Margin="10,15,5,5" >
 		<TextBlock Text="Unconverted videos directory (top level)"/>
-		<StackPanel Orientation="Horizontal" Margin="0,0,0,25" >
+		<StackPanel Orientation="Horizontal" Margin="0,0,0,0" >
 			<Button Name="btn_UnconvertedVideoDir" Content="Search"/>
 			<Label Name="lbl_UnconvertedVideoDir" Content="Some such directory" ClipToBounds="True"/>
+		</StackPanel>
+		<StackPanel Orientation="Horizontal" Margin="0,0,0,25" >
+			<Label Content="Remove above videos older than: (days) "></Label>
+			<ComboBox Name="combo_CleanupDays" PlaceholderText="Days"
+				FontSize="10" Width="85" MaxDropDownHeight="200">
+			</ComboBox>
+			<Button Name="btn_Cleanup" Content="Run Now" Padding="5" Margin="10,0,0,0" HorizontalAlignment="Center"/>
+
 		</StackPanel>
 		<TextBlock Text="Converted videos directory (top level)"/>
 

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using MsBox.Avalonia;
 using System;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,8 @@ public partial class SettingsWindow : Window
         myConfigInfo = configInfo;
         newUtil = new Utils();
         Load_Bitrate_ComboBox();
-        ReadConfig();
+        LoadVideoDirectories();
+        Load_CleanupDays_ComboBox();
         InitializeEvents();
     }
 
@@ -30,12 +32,10 @@ public partial class SettingsWindow : Window
     //---------Helper functions
     //
 
-    private void ReadConfig()
+    private void LoadVideoDirectories()
     {
         lbl_UnconvertedVideoDir.Content = myConfigInfo.unconvertedVideoDir;
-        
         lbl_ConvertedVideoDir.Content = myConfigInfo.convertedVideosTopDir;
-        
     }
 
     private async Task<string> ReturnSeachDirectory()
@@ -74,7 +74,8 @@ public partial class SettingsWindow : Window
         btn_ConvertedVideoDir.Click += ConvertedSearchButton_Click;
         btn_Close.Click += CloseButton_Click;
         combo_VideoBitrate.SelectionChanged += BitrateCombo_SelectedIndexChanged;
-
+        combo_CleanupDays.SelectionChanged += CleanupDaysCombo_SelectedIndexChanged;
+        btn_Cleanup.Click += CleanupNow_Click;
     }
 
     private void Load_Bitrate_ComboBox()
@@ -94,6 +95,38 @@ public partial class SettingsWindow : Window
         }
 
     }
+
+    private void Load_CleanupDays_ComboBox()
+    {
+        combo_CleanupDays.Items.Clear();
+        combo_CleanupDays.Items.Add("None");
+        combo_CleanupDays.Items.Add("30");
+        combo_CleanupDays.Items.Add("60");
+        combo_CleanupDays.Items.Add("90");
+        
+        switch (myConfigInfo.cleanupAfterDays)
+        {
+            case 0:
+                combo_CleanupDays.SelectedIndex = 0;
+                break;
+
+            case 30:
+                combo_CleanupDays.SelectedIndex = 1;
+                break;
+
+            case 60:
+                combo_CleanupDays.SelectedIndex = 2;
+                break;
+
+            case 90:
+                combo_CleanupDays.SelectedIndex = 3;
+                break;
+            default:
+                combo_CleanupDays.SelectedIndex = 0;
+                break;
+        }
+        
+    }
     //
     //---------Button Click Events
     //
@@ -106,6 +139,32 @@ public partial class SettingsWindow : Window
 
     }
 
+    private void CleanupDaysCombo_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        string selectedItem = combo_CleanupDays.SelectedItem.ToString();
+        switch (selectedItem)
+        {
+            case "None":
+                myConfigInfo.cleanupAfterDays = 0;
+                break;
+
+            case "30":
+                myConfigInfo.cleanupAfterDays = 30;
+                break;
+
+            case "60":
+                myConfigInfo.cleanupAfterDays = 60;
+                break;
+
+            case "90":
+                myConfigInfo.cleanupAfterDays = 90;
+                break;
+            default:
+                myConfigInfo.cleanupAfterDays = 0;
+                break;
+        }
+        newUtil.UpdateConfigFile(myConfigInfo, "cleanupAfterDays", myConfigInfo.cleanupAfterDays.ToString());
+    }
 
     private async void UnconvertedSearchButton_Click(object sender, EventArgs e)
     {
@@ -130,6 +189,23 @@ public partial class SettingsWindow : Window
 
             //write change to file
             newUtil.UpdateConfigFile(myConfigInfo, "convertedVideosTopDir", convertVideo);
+        }
+    }
+
+    private async void CleanupNow_Click(object sender, EventArgs e)
+    {
+        if(myConfigInfo.cleanupAfterDays >0)
+        {
+            FolderCleanup cleanup = new(myConfigInfo.cleanupAfterDays,myConfigInfo.unconvertedVideoDir);
+            string cleanupErrors = cleanup.CleanUpFolder();
+            if (cleanupErrors != "")
+            {
+                var box = MessageBoxManager.GetMessageBoxStandard("Error", cleanupErrors,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error,
+                    WindowStartupLocation.CenterOwner);
+                await box.ShowWindowAsync();
+            }
+
         }
     }
 
