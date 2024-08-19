@@ -38,6 +38,7 @@ namespace xPlatformLukma
         public string UploadPath;
         public string Resolution;
         public string SecondaryLogoPath;
+        public string PrimaryLogoPath;
         public DateTime FileCreated;
         public string ClipStartTime;
         public string ClipEndTime;
@@ -259,13 +260,13 @@ namespace xPlatformLukma
                     }
                 }
             }
-            
-            //This is also the case if the file does not exist or is corrupted
-            if (!myConfigInfo.customLogos.ContainsKey("Primary"))
+            else
             {
+                //This is also the case if the file does not exist or is corrupted
                 myConfigInfo.customLogos.Add("Primary", basePriimaryLogo);
                 ReWriteCustomLogosFile(myConfigInfo);
             }
+            
 
             return returnError;
         }

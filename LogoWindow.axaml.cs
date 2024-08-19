@@ -228,28 +228,33 @@ public partial class LogoWindow : Window
             lbl_additionalInfo.Text = "Applies to ALL videos";
             string catName = "Primary";
             
-            string tmpString;
+            string tmpString="";
             if (myConfigInfo.customLogos.ContainsKey(catName))
             {
                 tmpString = myConfigInfo.customLogos[catName];
             }
-            else
+            //else
+            //{
+            //    tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
+            //    CheckAndAddNewLogo(catName, tmpString);
+            //}
+            if(tmpString != "")
             {
-                tmpString = System.IO.Path.Combine(myConfigInfo.logoDir, "SDCLogo_1080.png");
-                CheckAndAddNewLogo(catName, tmpString);
-            }
-            if(File.Exists(tmpString))
-            {
-                lbl_additionalInfo.Text = tmpString;
-                SetImage(image_CurrentLogo, tmpString);
-                Enable_SearchButton(this, new EventArgs());
-                Enable_ApplyButton(this, new EventArgs());
-            }
-            else
-            {
-                lbl_additionalInfo.Text = "Re-add logo for " + catName + ". File not found: " + tmpString;
+                if (File.Exists(tmpString))
+                {
+                    lbl_additionalInfo.Text = tmpString;
+                    SetImage(image_CurrentLogo, tmpString);
+                    Enable_SearchButton(this, new EventArgs());
+                    Enable_ApplyButton(this, new EventArgs());
+                    Enable_RemoveButton(this, new EventArgs());
+                }
+                else
+                {
+                    lbl_additionalInfo.Text = "Re-add logo for " + catName + ". File not found: " + tmpString;
 
+                }
             }
+            
             
         }
     }
@@ -262,7 +267,7 @@ public partial class LogoWindow : Window
         }
         else { btn_Apply.IsEnabled = false; }
     }
-    //-------------NEEDS TO BE UPDATED--------------
+   
     private void Enable_RemoveButton(object sender, EventArgs e) 
     {
         if (image_CurrentLogo.Source != null)
@@ -372,8 +377,15 @@ public partial class LogoWindow : Window
         string sComboName;
         if ((bool)rb_Primary.IsChecked)
         {
-            //sComboName = "Primary";
-            lbl_additionalInfo.Text = "Can't remove Primary Logo";
+            sComboName = "Primary";
+            if (myConfigInfo.customLogos.ContainsKey(sComboName))
+            {
+                myConfigInfo.customLogos.Remove(sComboName);
+                newUtil.ReWriteCustomLogosFile(myConfigInfo);
+            }
+            ClearCurrentLogoBox();
+            Enable_ApplyButton(this, new EventArgs());
+            Enable_RemoveButton(this, new EventArgs());
 
         }
         else if ((bool)rb_Category.IsChecked)

@@ -683,7 +683,7 @@ namespace xPlatformLukma
         }
 
         //
-        //This will have to be redone to support setting secondary logos anywhere
+        //
         //
         public string GetSecondaryLogo()
         {
@@ -722,18 +722,14 @@ namespace xPlatformLukma
 
         public string GetPrimaryLogo()
         {
-            string returnPath;
+            string returnPath="";
 
             if (configInfo.customLogos.ContainsKey("Primary"))
             {
                 returnPath = configInfo.customLogos["Primary"];
             }
-            else
-            {
-                returnPath = Path.Combine(configInfo.logoDir, "SDCLogo_1080.png");
-            }
             
-            if (!File.Exists(returnPath))
+            if (returnPath != "" && !File.Exists(returnPath))
             {
                 //Throw error message
                 string msg = "Primary Logo was not found: " + returnPath;
@@ -854,6 +850,8 @@ namespace xPlatformLukma
             }       
 
             string secondaryLogoPath = GetSecondaryLogo();
+            string primaryLogoPath = GetPrimaryLogo();
+            //Added getting primary logo
 
             string[] tmpClipTimes = {"",""};
             tmpClipTimes = GetTrimStartEnd();
@@ -864,7 +862,8 @@ namespace xPlatformLukma
                 SourcePath = newSourcePathFile,
                 UploadPath = newUploadPathFile,
                 Resolution = videoQuality,
-                SecondaryLogoPath = secondaryLogoPath,                                 //What is this really used for
+                SecondaryLogoPath = secondaryLogoPath,
+                PrimaryLogoPath = primaryLogoPath,
                 FileCreated = DateTime.Now,
                 ClipStartTime = tmpClipTimes[0],
                 ClipEndTime = tmpClipTimes[1]
@@ -896,7 +895,7 @@ namespace xPlatformLukma
             }   //find oldest file to convert
 
 
-            string logo1 = GetPrimaryLogo();
+            //string logo1 = GetPrimaryLogo();
 
             if (!File.Exists(configInfo.ffmpegLocation))
             {
@@ -916,28 +915,47 @@ namespace xPlatformLukma
                     string scalingOnce = "";
                     string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
 
+                    //if the resolution is 720, scale the images
                     if (videoDataConverting.Resolution != "1080")
                     {
                         //If the image needs to be scaled
                         scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
                         scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
                     }
-                                        
-                    if (videoDataConverting.SecondaryLogoPath != "")
+                    string logo1 = videoDataConverting.PrimaryLogoPath;
+                    string logo2 = videoDataConverting.SecondaryLogoPath;
+
+                    if (logo2 != "")
                     {
-                        string logo2 = videoDataConverting.SecondaryLogoPath;
-                        ffmpegArgs = ffmpegArgs +
-                        "-i \"" + logo1 + "\" " +
+                        if(logo1 != "")
+                        {
+                            //use both logos
+                            ffmpegArgs = ffmpegArgs +
+                            "-i \"" + logo1 + "\" " +
                             "-i \"" + logo2 + "\" " +
                             scalingTwice;
+
+                        }
+                        else
+                        {
+                            //------Only use secondary logo
+                            ffmpegArgs = ffmpegArgs +
+                            "-i \"" + logo2 + "\" " +
+                            //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
+                            //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
+                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
+                        }
                     }
                     else
                     {
-                        ffmpegArgs = ffmpegArgs +
+                        if(logo1 != "")
+                        {
+                            ffmpegArgs = ffmpegArgs +
                             "-i \"" + logo1 + "\" " +
                             //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
                             //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
                             "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
+                        }
                     }
 
                     if (videoDataConverting.ClipStartTime != "")

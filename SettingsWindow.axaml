@@ -39,7 +39,7 @@
 		<StackPanel Orientation="Horizontal" Margin="0,0,0,25" >
 			<Label Content="Remove above videos older than: (days) "></Label>
 			<ComboBox Name="combo_CleanupDays" PlaceholderText="Days"
-				FontSize="10" Width="85" MaxDropDownHeight="200">
+				FontSize="10" Width="88" MaxDropDownHeight="200">
 			</ComboBox>
 			<Button Name="btn_Cleanup" Content="Run Now" Padding="5" Margin="10,0,0,0" HorizontalAlignment="Center"/>
 

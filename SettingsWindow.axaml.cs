@@ -99,7 +99,7 @@ public partial class SettingsWindow : Window
     private void Load_CleanupDays_ComboBox()
     {
         combo_CleanupDays.Items.Clear();
-        combo_CleanupDays.Items.Add("None");
+        combo_CleanupDays.Items.Add("Never");
         combo_CleanupDays.Items.Add("30");
         combo_CleanupDays.Items.Add("60");
         combo_CleanupDays.Items.Add("90");
