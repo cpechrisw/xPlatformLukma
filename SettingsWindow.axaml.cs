@@ -144,7 +144,7 @@ public partial class SettingsWindow : Window
         string selectedItem = combo_CleanupDays.SelectedItem.ToString();
         switch (selectedItem)
         {
-            case "None":
+            case "Never":
                 myConfigInfo.cleanupAfterDays = 0;
                 break;
 
