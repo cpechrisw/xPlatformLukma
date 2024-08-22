@@ -49,7 +49,7 @@ Added unconverted video folder cleanup enhancement
 Removed primary logo requirement
 
 ----1.5.0----
--Bug fix to Trim
+-Bug fix with Trim
 -Only allowing 1 instance of lukma to be open at a time
 -Force popup dialogs to be closed before moving on in Lukma
 -Add an option in Settings for lower or higher bitrate (reduces the file size by half at lower bitrate)default is lower bitrate
