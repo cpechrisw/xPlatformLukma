@@ -34,10 +34,10 @@
 			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
 				<TextBlock Text="Applies Logo" HorizontalAlignment="Center"/>
 				<TextBlock Text="Edits To:" HorizontalAlignment="Center"/>
-				<RadioButton Name="rb_Primary" Content="Primary" IsChecked="False"/>
-				<RadioButton Name="rb_Category" Content="Category"/>
-				<RadioButton Name="rb_Teams" Content="Teams"/>
-				<RadioButton Name="rb_TeamsPrivate" Content="Teams - Private"/>
+				<RadioButton GroupName="rbGroup" Name="rb_Primary" Content="Primary" IsChecked="False"/>
+				<RadioButton GroupName="rbGroup" Name="rb_Category" Content="Category"/>
+				<RadioButton GroupName="rbGroup" Name="rb_Teams" Content="Teams"/>
+				<RadioButton GroupName="rbGroup" Name="rb_TeamsPrivate" Content="Teams - Private"/>
 				<ComboBox Name="comboBox_Name" Width="150" IsEnabled="False"/>
 				
 			</StackPanel>

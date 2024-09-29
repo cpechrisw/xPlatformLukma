@@ -54,4 +54,6 @@ Removed primary logo requirement
 -Force popup dialogs to be closed before moving on in Lukma
 -Add an option in Settings for lower or higher bitrate (reduces the file size by half at lower bitrate)default is lower bitrate
 
+----1.6.0----
+-Bug fix with logos dialog and added error messaging
 

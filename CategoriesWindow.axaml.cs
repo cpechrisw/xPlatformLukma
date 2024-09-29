@@ -298,8 +298,7 @@ public partial class CategoriesWindow : Window
         string localCategoryText = lsbox_Categories.SelectedItem?.ToString();
         if (localCategoryText != "Teams" && localCategoryText != "Teams - Private" && localCategoryText != "Fun Jumpers")
         {
-            //Add code to remove from categories
-
+            
             string specificCatFilePath = Path.Combine(myConfigInfo.configDir, localCategoryText + ".txt");
             if (File.Exists(specificCatFilePath))
             {

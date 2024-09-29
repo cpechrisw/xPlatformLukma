@@ -267,6 +267,10 @@ namespace xPlatformLukma
                 ReWriteCustomLogosFile(myConfigInfo);
             }
             
+            if(returnError != "")
+            {
+                ReWriteCustomLogosFile(myConfigInfo);
+            }
 
             return returnError;
         }
