@@ -16,7 +16,7 @@ MacOS will be provided with Lukma or can be found manually above. Manually can b
 ----Notes/Descriptions----
 
 ---Manually editing any config files is unsupported and will have unexpected consequences---
-license.ini files goes in the config directory. It should be in there after installation(Windows) or after invoking the application(MacOS)
+New license.ini files goes in the config directory. XPlatformLukma --> Contents --> MacOS --> Config. It should be in there after installation.
 
 Trimming videos - Trim start must be before trim end. Both Start and End trim have to be defined. If they aren't, the video will not be processes.
 
@@ -43,6 +43,8 @@ Mac - Maximizing Lukma can cause video playback issues
 
 
 ----Version Information----
+----1.7.0----
+Improved error messages when a logo can't be found
 
 ----1.6.0----
 Added unconverted video folder cleanup enhancement

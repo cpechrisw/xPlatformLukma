@@ -146,14 +146,14 @@ public partial class LogoWindow : Window
 
                 }
             }
-            Toggle_SearchButton(true, this, new EventArgs());
+            Toggle_SearchButton(true, new EventArgs());
             //Enable_SearchButton(this, new EventArgs());
             Toggle_ApplyButton(this, new EventArgs());
             Toggle_RemoveButton(this, new EventArgs());
         }
         else
         {
-            Toggle_SearchButton(false, this, new EventArgs());
+            Toggle_SearchButton(false, new EventArgs());
         }
 
     }
@@ -175,7 +175,7 @@ public partial class LogoWindow : Window
                 string tmpString = myConfigInfo.customLogos[catName];
                 SetImage(image_CurrentLogo, tmpString);
             }
-            Toggle_SearchButton(true, this, new EventArgs());
+            Toggle_SearchButton(true, new EventArgs());
             //Enable_SearchButton(this, new EventArgs());
             Toggle_ApplyButton(this, new EventArgs());
             Toggle_RemoveButton(this, new EventArgs());
@@ -202,7 +202,7 @@ public partial class LogoWindow : Window
             }
             lbl_additionalInfo.Text = "Applies to only individual teams";
             Load_ComboBox(comboName);
-            Toggle_SearchButton(false, this, new EventArgs());
+            Toggle_SearchButton(false, new EventArgs());
             //Enable_SearchButton(this, new EventArgs());
 
         }
@@ -224,7 +224,7 @@ public partial class LogoWindow : Window
             ClearNewLogoBox();
             lbl_additionalInfo.Text = "Applies to ALL videos";
             
-            Toggle_SearchButton(true, this, new EventArgs());
+            Toggle_SearchButton(true, new EventArgs());
             //Toggle_ApplyButton(this, new EventArgs());
             //Toggle_RemoveButton(this, new EventArgs());
 
@@ -283,7 +283,7 @@ public partial class LogoWindow : Window
     }
 
 
-    private void Toggle_SearchButton(bool bValue, object sender, EventArgs e)
+    private void Toggle_SearchButton(bool bValue, EventArgs e)
     {
         btn_Search.IsEnabled = bValue;
     }

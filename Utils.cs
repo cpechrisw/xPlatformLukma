@@ -236,26 +236,28 @@ namespace xPlatformLukma
 
             if (File.Exists(sCustomLogoConfig))
             {
-                using (StreamReader sr = new(sCustomLogoConfig))
+                using StreamReader sr = new(sCustomLogoConfig);
+                while (!sr.EndOfStream)
                 {
-                    while (!sr.EndOfStream)
+                    string sLine = sr.ReadLine().Trim();
+                    string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
+
+
+                    if (aLine.Length == 2)
                     {
-                        string sLine = sr.ReadLine().Trim();
-                        string[] aLine = sLine.Split('=', (char)StringSplitOptions.RemoveEmptyEntries);
-
-
-                        if (aLine.Length == 2)
+                        string sParameter = aLine[0];
+                        string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
+                        //May also have to replace slashes here
+                        if (!File.Exists(sValue))
                         {
-                            string sParameter = aLine[0];
-                            string sValue = aLine[1].TrimEnd(Environment.NewLine.ToCharArray());
-                            //May also have to replace slashes here
-                            if (!File.Exists(sValue))
-                                returnError += " Error, logo for " + sParameter + " is missing"+ Environment.NewLine;
+                            string sImageName = System.IO.Path.GetFileName(sValue);
+                            returnError += " Error, logo " + sImageName + " for " + sParameter + " is missing" + Environment.NewLine;
+                        }
 
-                            if (!myConfigInfo.customLogos.ContainsKey(sParameter) && File.Exists(sValue))
-                            {
-                                myConfigInfo.customLogos.Add(sParameter, sValue);
-                            }
+
+                        if (!myConfigInfo.customLogos.ContainsKey(sParameter) && File.Exists(sValue))
+                        {
+                            myConfigInfo.customLogos.Add(sParameter, sValue);
                         }
                     }
                 }

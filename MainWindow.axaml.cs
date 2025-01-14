@@ -34,7 +34,7 @@ namespace xPlatformLukma
         private Utils newUtil;                  //used for common functions
         
 
-        private bool ENABLEVIDEOCUT = true; //Global varialble to enable/disable chopping of the video
+        private readonly bool ENABLEVIDEOCUT = true; //Global varialble to enable/disable chopping of the video
 
         //----used in ShowPercentComplete when files are being converted
         private DispatcherTimer completionTimer;
@@ -596,10 +596,14 @@ namespace xPlatformLukma
         {
             string configDir = configInfo.configDir;
             License testLicense = new(configDir);
-            //testLicense.WriteNewLicenseFile(configDir, 2025);
-            if (!testLicense.isLicValid() )
+            //For creating new License file,
+            //  Comment out when done creating file
+            testLicense.WriteNewLicenseFile(configDir, 2025);
+            //
+            //
+            if (!testLicense.IsLicValid() )
             {
-                ShowErrorMessageAndClose("License has expired as of " + testLicense.getExpirationDate());
+                ShowErrorMessageAndClose("License has expired as of " + testLicense.GetExpirationDate());
             }
         }
 
@@ -1153,7 +1157,7 @@ namespace xPlatformLukma
                 //Are we converting files
                 //if(ListOfFiles.Count == 0)
                 //{
-                    FolderCleanup cleanupFolder = new FolderCleanup(configInfo.cleanupAfterDays, configInfo.unconvertedVideoDir);
+                    FolderCleanup cleanupFolder = new(configInfo.cleanupAfterDays, configInfo.unconvertedVideoDir);
                     string cleanupErrors = cleanupFolder.CleanUpFolder();
                     if (cleanupErrors != "")
                     {
@@ -1299,23 +1303,24 @@ namespace xPlatformLukma
         }
 
 
-        private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
+        private async void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            Dispatcher.UIThread.Post(() => UpdateTimerFromSlider(e), DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(async () => await UpdateTimerFromSlider(e), DispatcherPriority.Background);
         }
         
-        private async Task UpdateTimerFromSlider(RangeBaseValueChangedEventArgs e)
+        private Task UpdateTimerFromSlider(RangeBaseValueChangedEventArgs e)
         {
             _mp.Time = (long)e.NewValue;
             //_mp.Time =(long)slider_VideoSlider.Value;
+            return Task.CompletedTask;
         }
 
-        private void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
+        private async void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
         {
-            Dispatcher.UIThread.Post(() => UpdateTimeLabelsFromVideo(), DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(async () => await UpdateTimeLabelsFromVideo(), DispatcherPriority.Background);
         }
 
-        private async Task UpdateTimeLabelsFromVideo()
+        private Task UpdateTimeLabelsFromVideo()
         {
             TimeSpan currentTime = TimeSpan.FromMilliseconds(_mp.Time);
             TimeSpan endTime = TimeSpan.FromMilliseconds(_mp.Length);
@@ -1329,7 +1334,7 @@ namespace xPlatformLukma
             slider_VideoSlider.Maximum = _mp.Length;
             slider_VideoSlider.Value = _mp.Time;
             slider_VideoSlider.ValueChanged += SL_TimeChanged;
-
+            return Task.CompletedTask;
         }
         
         private void DescriptionTextBox_TextChanged(object sender, EventArgs e)
