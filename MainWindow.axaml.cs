@@ -1201,7 +1201,7 @@ namespace xPlatformLukma
             if (files.Count > 0)
             {
                 sResult = files[0].TryGetLocalPath();
-                initVideoDirectory = sResult;
+                initVideoDirectory = System.IO.Path.GetDirectoryName(sResult);
             }
               
             return sResult;
