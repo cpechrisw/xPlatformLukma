@@ -917,14 +917,14 @@ namespace xPlatformLukma
                     //          Places the images in the center
                     string ffmpegArgs = "-i \"" + videoDataConverting.SourcePath + "\" ";
                     string scalingOnce = "";
-                    string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:H-h-10[v1];[v1][2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+                    string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:y=H-h-10[v1];[v1][2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
 
                     //if the resolution is 720, scale the images
                     if (videoDataConverting.Resolution != "1080")
                     {
                         //If the image needs to be scaled
                         scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
-                        scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:H-h-10[v2]\" -map \"[v2]\" ";
+                        scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:y=H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
                     }
                     string logo1 = videoDataConverting.PrimaryLogoPath;
                     string logo2 = videoDataConverting.SecondaryLogoPath;
@@ -947,18 +947,19 @@ namespace xPlatformLukma
                             "-i \"" + logo2 + "\" " +
                             //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
                             //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
-                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
+                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:y=H-h-10 ";
                         }
                     }
                     else
                     {
                         if(logo1 != "")
                         {
+                            // using first logo
                             ffmpegArgs = ffmpegArgs +
                             "-i \"" + logo1 + "\" " +
                             //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
                             //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
-                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:H-h-10 ";
+                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:y=H-h-10 ";
                         }
                     }
 
@@ -970,13 +971,13 @@ namespace xPlatformLukma
                     string iBitrate = GetBitRate();
                     ffmpegArgs = ffmpegArgs +
                         "-s hd" + videoDataConverting.Resolution + " " +
-                        "-c:v libx264 " +
+                        "-c:v libx264 " +         //Original
                         "-crf " + iBitrate + " " +       //Set the quality/size tradeoff for constant-quality (no bitrate target) and constrained-quality (with maximum bitrate target) modes. Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
                         //"-c:a aac " +             //audio to use aac
                         //"-strict -2 " +           //Specify how strictly to follow the standards
                         "-an \"" + videoDataConverting.UploadPath + "\"";
-                        //
-
+                    //
+                    // for mac: -c:v h264_videotoolbox
                     //Conditional for mac
                     if (!winPlatform)
                     {
@@ -984,6 +985,8 @@ namespace xPlatformLukma
                     }
                     //End of ffmpeg arguments creation
 
+                    //----DEBUG----//
+                    //Debug.WriteLine("From ffmpeg: " + ffmpegArgs);
 
                     ffmpeg = new Process
                     {
