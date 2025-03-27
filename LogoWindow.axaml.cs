@@ -58,12 +58,12 @@ public partial class LogoWindow : Window
         if (myConfigInfo.customLogos.ContainsKey(sCat))
         {
             myConfigInfo.customLogos[sCat] = logoLocation;
-            newUtil.ReWriteCustomLogosFile(myConfigInfo);
+            Utils.ReWriteCustomLogosFile(myConfigInfo);
         }
         else
         {
             myConfigInfo.customLogos.Add(sCat, logoLocation);
-            newUtil.AppendCustomLogosFile(myConfigInfo, sCat, logoLocation);
+            Utils.AppendCustomLogosFile(myConfigInfo, sCat, logoLocation);
         }
         SetImage(image_CurrentLogo, logoLocation);
         lbl_additionalInfo.Text = logoLocation;
@@ -406,7 +406,7 @@ public partial class LogoWindow : Window
             if (myConfigInfo.customLogos.ContainsKey(sComboName))
             {
                 myConfigInfo.customLogos.Remove(sComboName);
-                newUtil.ReWriteCustomLogosFile(myConfigInfo);
+                Utils.ReWriteCustomLogosFile(myConfigInfo);
             }
             ClearCurrentLogoBox();
             Toggle_ApplyButton(this, new EventArgs());
@@ -419,7 +419,7 @@ public partial class LogoWindow : Window
             if (myConfigInfo.customLogos.ContainsKey(sComboName))
             {
                 myConfigInfo.customLogos.Remove(sComboName);
-                newUtil.ReWriteCustomLogosFile(myConfigInfo);
+                Utils.ReWriteCustomLogosFile(myConfigInfo);
             }
             ClearCurrentLogoBox();
             Toggle_ApplyButton(this, new EventArgs());
@@ -434,7 +434,7 @@ public partial class LogoWindow : Window
                 if (myConfigInfo.customLogos.ContainsKey(sComboName))
                 {
                     myConfigInfo.customLogos.Remove(sComboName);
-                    newUtil.ReWriteCustomLogosFile(myConfigInfo);
+                    Utils.ReWriteCustomLogosFile(myConfigInfo);
                 }
                 ClearCurrentLogoBox();
                 lbl_additionalInfo.Text = "Applies to only individual teams";

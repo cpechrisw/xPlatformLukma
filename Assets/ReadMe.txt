@@ -43,6 +43,9 @@ Mac - Maximizing Lukma can cause video playback issues
 
 
 ----Version Information----
+----1.8.0----
+Code refactoring for memory improvements
+
 ----1.7.0----
 Improved error messages when a logo can't be found
 

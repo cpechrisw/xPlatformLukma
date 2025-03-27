@@ -42,6 +42,7 @@ namespace xPlatformLukma
         public DateTime FileCreated;
         public string ClipStartTime;
         public string ClipEndTime;
+        public bool BeingConverted;
     }
 
     //
@@ -144,7 +145,7 @@ namespace xPlatformLukma
     internal class Utils
     {
         //Replaces and old line for a new line in the config file
-        public void UpdateConfigFile(ConfigStruct aConfigInfo, string oldline, string updatedLine)
+        public static void UpdateConfigFile(ConfigStruct aConfigInfo, string oldline, string updatedLine)
         {
             string CatPath = System.IO.Path.Combine(aConfigInfo.configDir, "config.txt");
             bool found = false;
@@ -180,7 +181,7 @@ namespace xPlatformLukma
 
         }
 
-        public void CopyConfigsForMac(string MacDirectory, ConfigStruct aConfigInfo)
+        public static void CopyConfigsForMac(string MacDirectory, ConfigStruct aConfigInfo)
         {
             //string CatPath = System.IO.Path.Combine(aConfigInfo.configDir, "config.txt");
             string configDir = System.IO.Path.Combine(aConfigInfo.appDir, "config");
@@ -210,7 +211,7 @@ namespace xPlatformLukma
 
         }
         
-        public void CopyAllFiles(string baseDirectory, string destinationDir)
+        public static void CopyAllFiles(string baseDirectory, string destinationDir)
         {
             var dir = new DirectoryInfo(baseDirectory);
             
@@ -227,7 +228,7 @@ namespace xPlatformLukma
         }
 
         //Reads the custom logos file and updates local structure
-        public string ReadCustomLogos(ConfigStruct myConfigInfo)
+        public static string ReadCustomLogos(ConfigStruct myConfigInfo)
         {
 
             string sCustomLogoConfig = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
@@ -278,7 +279,7 @@ namespace xPlatformLukma
         }
         
         //Fully rewrites the custom log file
-        public void ReWriteCustomLogosFile(ConfigStruct myConfigInfo)
+        public static void ReWriteCustomLogosFile(ConfigStruct myConfigInfo)
         {
             string filePath = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
             string[] sArray = new string[myConfigInfo.customLogos.Count];
@@ -292,7 +293,7 @@ namespace xPlatformLukma
         }
 
         //Adds a new line to the custom logo file
-        public void AppendCustomLogosFile(ConfigStruct myConfigInfo, string category, string logoLocation)
+        public static void AppendCustomLogosFile(ConfigStruct myConfigInfo, string category, string logoLocation)
         {
             string filePath = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
             string addedString = category + "=" + logoLocation;

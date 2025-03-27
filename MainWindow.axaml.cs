@@ -17,6 +17,8 @@ using System.Text.RegularExpressions;
 using Microsoft.VisualBasic.FileIO;
 using System.Runtime.InteropServices;
 using LibVLCSharp.Avalonia;
+using System.Text;
+using System.Collections.Concurrent;
 
 
 namespace xPlatformLukma
@@ -26,12 +28,13 @@ namespace xPlatformLukma
         //
         //-----Global Variables
         //
+        private static Mutex mutex = null;
         private SettingsWindow _settingsWindow;
         private LogoWindow _logoWindow;
         private CategoriesWindow _categoriesWindow;
         private bool winPlatform;               //1 if windows, 0 if not windows
         private string myErrorsOnLoad = "";      //specifically for load to show errors
-        private Utils newUtil;                  //used for common functions
+        //private Utils newUtil;                  //used for common functions
         
 
         private readonly bool ENABLEVIDEOCUT = true; //Global varialble to enable/disable chopping of the video
@@ -42,10 +45,10 @@ namespace xPlatformLukma
 
         //----used in ConvertVideo
 
-        Process ffmpeg;
+        //Process ffmpeg;
         bool FlagConverting = false;
-        List<VideoData> ListOfFiles = new();
-        VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
+        ConcurrentQueue<VideoData> ListOfFiles = new();
+        //VideoData videoDataConverting;			//Doesn't seem like it needs to be Global
         TimeSpan[] gVideoClip;
         Avalonia.Collections.AvaloniaList<double> gSliderTickList;
 
@@ -84,12 +87,18 @@ namespace xPlatformLukma
         protected override void OnOpened(EventArgs e)
         {
             const string appName = "xPlatformLukma";
-            new Mutex(true, appName, out bool createdNew);
+            mutex = new Mutex(true, appName, out bool createdNew);
 
             if (!createdNew)
             {
                 //app is already running! Exiting the application
-                if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
+                if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime)
+                {
+                    string msg = "One instance of application is already open. Closing new instance";
+                    //Debug.Write(msg);
+                    ShowErrorMessageAndClose(msg);
+                    //lifetime.Shutdown();
+                }
             }
 
 
@@ -124,12 +133,12 @@ namespace xPlatformLukma
 
 
             //Structure Intializations
-            newUtil = new Utils();
+            //newUtil = new Utils();
             configInfo = new ConfigStruct();
             categoriesDic = new SortedDictionary<string, string[]> { };
             ReadConfig();
             ReadCategoryFiles();
-            myErrorsOnLoad += "" + newUtil.ReadCustomLogos(configInfo);
+            myErrorsOnLoad += "" + Utils.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             this.Opened += CheckLicense;
@@ -291,7 +300,7 @@ namespace xPlatformLukma
                 {
                     foreach (string[] tmpString in updateList)
                     {
-                        newUtil.UpdateConfigFile(configInfo, tmpString[0], tmpString[1]);
+                        Utils.UpdateConfigFile(configInfo, tmpString[0], tmpString[1]);
                     }
                 }
 
@@ -299,10 +308,10 @@ namespace xPlatformLukma
             else        //File doesn't exist, write it out
             {
                 myErrorsOnLoad += "Error: Settings file doesn't exist. Close and reopen Lukma";
-                newUtil.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
-                newUtil.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
-                newUtil.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
-                newUtil.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.cleanupAfterDays.ToString());
+                Utils.UpdateConfigFile(configInfo, "localVideoDir", configInfo.unconvertedVideoDir);
+                Utils.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
+                Utils.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
+                Utils.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.cleanupAfterDays.ToString());
 
             }
 
@@ -314,12 +323,12 @@ namespace xPlatformLukma
             if (configInfo.bitRate < 0)
             {
                 configInfo.bitRate = 0;
-                newUtil.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
+                Utils.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
             }
             if (configInfo.cleanupAfterDays < 0)
             {
                 configInfo.cleanupAfterDays = 0;
-                newUtil.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.bitRate.ToString());
+                Utils.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.bitRate.ToString());
             }
 
 
@@ -338,7 +347,7 @@ namespace xPlatformLukma
                 //Environment.SpecialFolder.CommonDocuments
                 baseConfigAndLogoDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Public","Lukma");
 
-                newUtil.CopyConfigsForMac(baseConfigAndLogoDir, configInfo);
+                Utils.CopyConfigsForMac(baseConfigAndLogoDir, configInfo);
             }
             
             configInfo.configDir = Path.Combine(baseConfigAndLogoDir, "config");
@@ -416,22 +425,20 @@ namespace xPlatformLukma
                     string filePath = Path.Combine(configInfo.configDir, keyValue + ".txt");
                     if (File.Exists(filePath))
                     {
-                        using (StreamReader sr = new(filePath))
+                        using StreamReader sr = new(filePath);
+                        List<string> arrString = new();
+                        while (!sr.EndOfStream)
                         {
-                            List<string> arrString = new();
-                            while (!sr.EndOfStream)
-                            {
 
-                                string sListItem = sr.ReadLine();
-                                if (!String.IsNullOrEmpty(sListItem))
-                                {
-                                    arrString.Add(sListItem);
-                                }
+                            string sListItem = sr.ReadLine();
+                            if (!String.IsNullOrEmpty(sListItem))
+                            {
+                                arrString.Add(sListItem);
                             }
-                            //------sort the Array
-                            arrString.Sort();
-                            categoriesDic[keyValue] = arrString.ToArray();
                         }
+                        //------sort the Array
+                        arrString.Sort();
+                        categoriesDic[keyValue] = arrString.ToArray();
                     }
                 }
             }
@@ -717,7 +724,7 @@ namespace xPlatformLukma
             {
                 //Throw error message
                 string msg = "Secondary logo was not found: " + returnPath;
-                Debug.Write(msg);
+                //Debug.Write(msg);
                 ShowErrorMessage(msg);
                 returnPath = "";
             }
@@ -737,7 +744,7 @@ namespace xPlatformLukma
             {
                 //Throw error message
                 string msg = "Primary Logo was not found: " + returnPath;
-                Debug.Write(msg);
+                //Debug.Write(msg);
                 ShowErrorMessage(msg);
                 returnPath = "";
             }
@@ -870,171 +877,159 @@ namespace xPlatformLukma
                 PrimaryLogoPath = primaryLogoPath,
                 FileCreated = DateTime.Now,
                 ClipStartTime = tmpClipTimes[0],
-                ClipEndTime = tmpClipTimes[1]
+                ClipEndTime = tmpClipTimes[1],
+                BeingConverted = false
             };
 
-            ListOfFiles ??= new List<VideoData>();
-            ListOfFiles.Add(BillvideoData);
+            ListOfFiles ??= new ConcurrentQueue<VideoData>();
+            ListOfFiles.Enqueue(BillvideoData);
             ClearStuffAfterSave();
             if (!FlagConverting)
             {
                 FlagConverting = true;
-                ConvertVideo();
+                Task.Run(async () => await ConvertAllVideos());
             }
         }
-
-        private async void ConvertVideo()       //method to convert video
+        
+        private async Task ConvertAllVideos()
         {
-            if (ListOfFiles == null || ListOfFiles.Count == 0)
+            while ( !ListOfFiles.IsEmpty )
+            {
+                var videoData = ListOfFiles.OrderBy(f => f.FileCreated).First();
+                if (videoData.BeingConverted == false)
+                {
+                    await ConvertSingleVideo(videoData);
+                }
+                
+            }
+            FlagConverting = false;
+        }
+
+        private async Task ConvertSingleVideo(VideoData videoDataConverting)       //method to convert video
+        {
+            
+            if (ListOfFiles == null || ListOfFiles.IsEmpty)
             {
                 FlagConverting = false;
                 return;
             }  //exit if list is empty
-            videoDataConverting = new VideoData();    //creates class for this instance
-            DateTime OldestFile = DateTime.Now;     //instantiates OldestFile variable
-
-            foreach (VideoData thisfile in ListOfFiles)
-            {
-                if (thisfile.FileCreated < OldestFile) { videoDataConverting = thisfile; }
-            }   //find oldest file to convert
-
-
-            //string logo1 = GetPrimaryLogo();
+            
+            
+            //Set the being converted flag
+            videoDataConverting.BeingConverted = true;
 
             if (!File.Exists(configInfo.ffmpegLocation))
             {
-                string tmpMsg = "ffmpeg could not be found. Your install is corrupted";
-                ListOfFiles.Remove(videoDataConverting);
-                ShowErrorMessage(tmpMsg);
-                
+                ShowErrorMessage("ffmpeg could not be found. Your install is corrupted");
+                ListOfFiles.Clear();
+
+                return;
+            }
+                        
+
+            //   Building the argument list
+            //          Places the images in the center
+            StringBuilder ffmpegArgs = new();
+            //ffmpegArgs.Append("-hwaccel auto ");                    // Enable hardware acceleration
+            ffmpegArgs.Append($"-i \"{videoDataConverting.SourcePath}\" ");
+            ffmpegArgs.Append(GetLogoOverlayArgs(videoDataConverting));
+
+            if (!string.IsNullOrEmpty(videoDataConverting.ClipStartTime))
+            {
+                ffmpegArgs.Append($"-ss {videoDataConverting.ClipStartTime} -to {videoDataConverting.ClipEndTime} ");
+            }
+
+            string iBitrate = GetBitRate();
+            ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v libx264 -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\"");
+            /*
+            //Hardware acceleration encoding
+            if (winPlatform)        
+            {
+                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_nvenc -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\""); // Use NVENC for Windows
             }
             else
             {
-                Task converter = Task.Run(() =>                   //convert video to lower res
+                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_videotoolbox -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\""); // Use VideoToolbox for macOS
+            }
+            */
+
+            if (!winPlatform)
+            {
+                ffmpegArgs.Replace('\\', '/');
+            }
+            //End of ffmpeg arguments creation
+
+            //----DEBUG----//
+            //Debug.WriteLine("From ffmpeg: " + ffmpegArgs);
+
+            Process ffmpeg = new()
+            {
+                StartInfo =
                 {
+                    FileName = configInfo.ffmpegLocation,
+                    Arguments = ffmpegArgs.ToString(),
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                    //WorkingDirectory = configInfo.workingDirectoryVar
+                },
+                EnableRaisingEvents = false
+            };
+            try
+            {
+                ffmpeg.Start();
+                completionTimer.Start();
+                // Run ShowPercentComplete concurrently
+                //var progressTask = Task.Run(() => ShowPercentComplete());
+                ShowPercentComplete(ffmpeg);
+                //completionTimer.Tick += PercentCompleteTracker;
 
-                    //   Building the argument list
-                    //          Places the images in the center
-                    string ffmpegArgs = "-i \"" + videoDataConverting.SourcePath + "\" ";
-                    string scalingOnce = "";
-                    string scalingTwice = "-filter_complex \"[0][1]overlay=x=W/2-w-10:y=H-h-10[v1];[v1][2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
+                // Wait for ffmpeg to complete
+                //await ffmpeg.WaitForExitAsync();
 
-                    //if the resolution is 720, scale the images
-                    if (videoDataConverting.Resolution != "1080")
-                    {
-                        //If the image needs to be scaled
-                        scalingOnce = "[1]scale=0.7*iw:0.7*ih[p1],[0][p1]";
-                        scalingTwice = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:y=H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
-                    }
-                    string logo1 = videoDataConverting.PrimaryLogoPath;
-                    string logo2 = videoDataConverting.SecondaryLogoPath;
+                // Ensure progress tracking completes
+                //await progressTask;
+                
 
-                    if (logo2 != "")
-                    {
-                        if(logo1 != "")
-                        {
-                            //use both logos
-                            ffmpegArgs = ffmpegArgs +
-                            "-i \"" + logo1 + "\" " +
-                            "-i \"" + logo2 + "\" " +
-                            scalingTwice;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception after ffmpeg.Start: " + ex.Message);
+                ShowErrorMessage("Exception after ffmpeg.Start: " + ex.Message);
+            }
 
-                        }
-                        else
-                        {
-                            //------Only use secondary logo
-                            ffmpegArgs = ffmpegArgs +
-                            "-i \"" + logo2 + "\" " +
-                            //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
-                            //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
-                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:y=H-h-10 ";
-                        }
-                    }
-                    else
-                    {
-                        if(logo1 != "")
-                        {
-                            // using first logo
-                            ffmpegArgs = ffmpegArgs +
-                            "-i \"" + logo1 + "\" " +
-                            //"-filter_complex overlay=x=W/2-w/2-10:H-h-10 ";       //original with no scaling
-                            //"-filter_complex scale=2*iw:2*ih,overlay=x=W/2-w/2-10:H-h-10 "; //long form
-                            "-filter_complex " + scalingOnce + "overlay=x=W/2-w/2-10:y=H-h-10 ";
-                        }
-                    }
+            //ListOfFiles.Remove(videoDataConverting);          moved to show function
+            
+        }
 
-                    if (videoDataConverting.ClipStartTime != "")
-                    {
-                        string trimArg = "-ss " + videoDataConverting.ClipStartTime + " -to " + videoDataConverting.ClipEndTime + " ";
-                        ffmpegArgs += trimArg;
-                    }
-                    string iBitrate = GetBitRate();
-                    ffmpegArgs = ffmpegArgs +
-                        "-s hd" + videoDataConverting.Resolution + " " +
-                        "-c:v libx264 " +         //Original
-                        "-crf " + iBitrate + " " +       //Set the quality/size tradeoff for constant-quality (no bitrate target) and constrained-quality (with maximum bitrate target) modes. Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
-                        //"-c:a aac " +             //audio to use aac
-                        //"-strict -2 " +           //Specify how strictly to follow the standards
-                        "-an \"" + videoDataConverting.UploadPath + "\"";
-                    //
-                    // for mac: -c:v h264_videotoolbox
-                    //Conditional for mac
-                    if (!winPlatform)
-                    {
-                        ffmpegArgs = ffmpegArgs.Replace('\\', '/');
-                    }
-                    //End of ffmpeg arguments creation
+        private static string GetLogoOverlayArgs(VideoData videoData)
+        {
+            //if the resolution is 720, scale the images
+            string scalingOneLogo = "-filter_complex \"overlay=x=W/2-w/2-10:y=H-h-10\"";
+            string scalingTwoLogos = "-filter_complex \"[0][1]overlay=x=W/2-w-10:y=H-h-10[v1];[v1][2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
 
-                    //----DEBUG----//
-                    //Debug.WriteLine("From ffmpeg: " + ffmpegArgs);
-
-                    ffmpeg = new Process
-                    {
-                        StartInfo =
-                         {
-                             FileName = configInfo.ffmpegLocation,
-                             Arguments = ffmpegArgs,
-                             UseShellExecute = false,
-                             RedirectStandardOutput = true,
-                             RedirectStandardError = true,
-                             CreateNoWindow = true
-                             //WorkingDirectory = configInfo.workingDirectoryVar
-                         },
-                        EnableRaisingEvents = false
-                    };
-                    try
-                    {
-                        ffmpeg.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Exception during ffmpeg.Start: " + ex.Message);
-                        ShowErrorMessage("Exception during ffmpeg.Start: " + ex.Message);
-                    }
-
-                    //for debuging purposes
-                    //string stdout = ffmpeg.StandardOutput.ReadToEnd();
-                    //string stderr = ffmpeg.StandardError.ReadToEnd();
-                    try
-                    {
-                        //Debug.WriteLine("Percent complete run");
-                        ShowPercentComplete();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("During show complete: " + ex.Message);
-                        Console.WriteLine("During show complete: " + ex.Message);
-                    }
-
-                    ListOfFiles.Remove(videoDataConverting);
-                    ffmpeg.Dispose();       //Not sure if this is really needed
-                    ConvertVideo();
-                });
-                await converter;
+            if (videoData.Resolution != "1080")
+            {
+                //If the image needs to be scaled
+                scalingOneLogo = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1],[0][p1]overlay=x=W/2-w/2-10:y=H-h-10\"";
+                scalingTwoLogos = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:y=H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
             }
 
 
-            
+            if (!string.IsNullOrEmpty(videoData.PrimaryLogoPath) && !string.IsNullOrEmpty(videoData.SecondaryLogoPath))
+            {
+                return $"-i \"{videoData.PrimaryLogoPath}\" -i \"{videoData.SecondaryLogoPath}\" {scalingTwoLogos} ";
+            }
+            if (!string.IsNullOrEmpty(videoData.PrimaryLogoPath))
+            {
+                return $"-i \"{videoData.PrimaryLogoPath}\" {scalingOneLogo} ";
+            }
+            if (!string.IsNullOrEmpty(videoData.SecondaryLogoPath))
+            {
+                return $"-i \"{videoData.SecondaryLogoPath}\" {scalingOneLogo} ";
+            }
+            return string.Empty;
         }
 
         private string GetBitRate()
@@ -1047,8 +1042,66 @@ namespace xPlatformLukma
 
             return returnString;
         }
+        
+        private async void ShowPercentComplete(Process ffmpeg)
+        {
+            string duration = "";
+            string patternDuration = @"Duration:\s(\d+:\d+:\d+\.\d+)";
+            string patternTime = @"time=(\d+:\d+:\d+\.\d+)";
 
-        private void ShowPercentComplete()
+            try
+            {
+                using StreamReader reader = ffmpeg.StandardError;
+                string line;
+
+                while ((line = reader.ReadLine()) != null)
+                //while ((line = await reader.ReadLineAsync()) != null)
+                {
+                    //----DEBUG----//
+                    //Debug.WriteLine("From ffmpeg: " + line);
+
+                    // Try to capture total duration
+                    if (string.IsNullOrEmpty(duration))
+                    {
+                        Match matchDuration = Regex.Match(line, patternDuration);
+                        if (matchDuration.Success)
+                        {
+                            duration = matchDuration.Groups[1].Value;
+                        }
+                    }
+
+                    // Capture current progress time
+                    Match matchTime = Regex.Match(line, patternTime);
+                    if (matchTime.Success && !string.IsNullOrEmpty(duration))
+                    {
+                        string currentDuration = matchTime.Groups[1].Value;
+                        TimeSpan totalDuration = TimeSpan.Parse(duration);
+                        TimeSpan currentTime = TimeSpan.Parse(currentDuration);
+
+                        percent = totalDuration.TotalSeconds == 0 ? 0 :
+                            Convert.ToInt32((currentTime.TotalSeconds / totalDuration.TotalSeconds) * 100);
+
+                        //----DEBUG----//
+                        Debug.WriteLine($"Conversion complete: {percent}");
+                    }
+                }
+
+                reader.Dispose();       //Not sure if this is really needed
+                ffmpeg.Dispose();       //Not sure if this is really needed
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in ShowPercentComplete: {ex.Message}");
+                ShowErrorMessage($"ffmpeg Error: {ex.Message}");
+            }
+
+            //Everything should be done
+            ListOfFiles.TryDequeue(out _);
+
+        }
+        
+        /*
+        private async void ShowPercentComplete()
         {
             //Calculates percent complete
             string line, current_duration, duration = "";
@@ -1090,6 +1143,7 @@ namespace xPlatformLukma
                 }
             }
         }
+        */
 
         //
         //Creates the filname for the video
@@ -1356,7 +1410,7 @@ namespace xPlatformLukma
         {
             // Display a MsgBox asking the user if they really want to exit.
 
-            if (ListOfFiles.Count > 0)
+            if (!ListOfFiles.IsEmpty)
             {
                 var box = MessageBoxManager.GetMessageBoxStandard("Exiting", @"Videos still being converted: " + ListOfFiles.Count + "\nAre you sure you want to Exit",
                     MsBox.Avalonia.Enums.ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question,
@@ -1377,22 +1431,27 @@ namespace xPlatformLukma
             _media?.Dispose();          //Checks if it's null and then runs Dispose
             _mp?.Dispose();
             _libVLC?.Dispose();
+            mutex.ReleaseMutex();
             if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
         }
 
 
         private void PercentCompleteTracker(object sender, EventArgs e)
         {
-            if (percent > 0 || ListOfFiles.Count > 0)
+            Debug.WriteLine("PercentCompleteTrackerEvent: " + percent + " List count: " + ListOfFiles.Count );
+
+            if (percent < 100 && !ListOfFiles.IsEmpty)
             {
                 lbl_progressLabel.IsVisible = true;
-                string fileShow = Path.GetFileNameWithoutExtension(videoDataConverting.UploadPath);
+                string fileShow = Path.GetFileNameWithoutExtension(ListOfFiles.OrderBy(f => f.FileCreated).First().UploadPath);
                 lbl_progressLabel.Text = percent.ToString() + "% (1 of " + ListOfFiles.Count + " ) " + fileShow;
             }
-            if (lbl_progressLabel.Text.ToString().Contains("100") == true || ListOfFiles.Count == 0)
+            else if ( ListOfFiles.IsEmpty )
             {
                 lbl_progressLabel.Text = "";
                 lbl_progressLabel.IsVisible = false;
+                completionTimer.Stop();
+                //Debug.WriteLine("PercentCompleteTrackerEvent: done and list clear");
             }
         }
 

@@ -135,7 +135,7 @@ public partial class SettingsWindow : Window
         int selectedIndex = combo_VideoBitrate.SelectedIndex;
         myConfigInfo.bitRate = selectedIndex;
         //write change to file
-        newUtil.UpdateConfigFile(myConfigInfo, "bitrate", selectedIndex.ToString());
+        Utils.UpdateConfigFile(myConfigInfo, "bitrate", selectedIndex.ToString());
 
     }
 
@@ -163,7 +163,7 @@ public partial class SettingsWindow : Window
                 myConfigInfo.cleanupAfterDays = 0;
                 break;
         }
-        newUtil.UpdateConfigFile(myConfigInfo, "cleanupAfterDays", myConfigInfo.cleanupAfterDays.ToString());
+        Utils.UpdateConfigFile(myConfigInfo, "cleanupAfterDays", myConfigInfo.cleanupAfterDays.ToString());
     }
 
     private async void UnconvertedSearchButton_Click(object sender, EventArgs e)
@@ -175,7 +175,7 @@ public partial class SettingsWindow : Window
             myConfigInfo.unconvertedVideoDir = unconvertVideo;
 
             //write change to file
-            newUtil.UpdateConfigFile(myConfigInfo, "localVideoDir", unconvertVideo);
+            Utils.UpdateConfigFile(myConfigInfo, "localVideoDir", unconvertVideo);
 
         }
     }
@@ -188,7 +188,7 @@ public partial class SettingsWindow : Window
             myConfigInfo.convertedVideosTopDir = convertVideo;
 
             //write change to file
-            newUtil.UpdateConfigFile(myConfigInfo, "convertedVideosTopDir", convertVideo);
+            Utils.UpdateConfigFile(myConfigInfo, "convertedVideosTopDir", convertVideo);
         }
     }
 
