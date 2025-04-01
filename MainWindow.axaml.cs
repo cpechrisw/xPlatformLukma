@@ -101,7 +101,6 @@ namespace xPlatformLukma
                 }
             }
 
-
             base.OnOpened(e);
         }
         
@@ -508,6 +507,8 @@ namespace xPlatformLukma
                 _mp.Time = videoTime;
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
+                _mp.AspectRatio = null;     //added to try and help with MacOS issue of fullscreen issue
+                //_mp.Scale = 0;              //added to try and help with MacOS issue of fullscreen issue
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
                 Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Normal);
@@ -877,8 +878,7 @@ namespace xPlatformLukma
                 PrimaryLogoPath = primaryLogoPath,
                 FileCreated = DateTime.Now,
                 ClipStartTime = tmpClipTimes[0],
-                ClipEndTime = tmpClipTimes[1],
-                BeingConverted = false
+                ClipEndTime = tmpClipTimes[1]
             };
 
             ListOfFiles ??= new ConcurrentQueue<VideoData>();
@@ -896,11 +896,7 @@ namespace xPlatformLukma
             while ( !ListOfFiles.IsEmpty )
             {
                 var videoData = ListOfFiles.OrderBy(f => f.FileCreated).First();
-                if (videoData.BeingConverted == false)
-                {
-                    await ConvertSingleVideo(videoData);
-                }
-                
+                await ConvertSingleVideo(videoData);
             }
             FlagConverting = false;
         }
@@ -915,9 +911,6 @@ namespace xPlatformLukma
             }  //exit if list is empty
             
             
-            //Set the being converted flag
-            videoDataConverting.BeingConverted = true;
-
             if (!File.Exists(configInfo.ffmpegLocation))
             {
                 ShowErrorMessage("ffmpeg could not be found. Your install is corrupted");
@@ -930,7 +923,7 @@ namespace xPlatformLukma
             //   Building the argument list
             //          Places the images in the center
             StringBuilder ffmpegArgs = new();
-            //ffmpegArgs.Append("-hwaccel auto ");                    // Enable hardware acceleration
+            //ffmpegArgs.Append($"-noautorotate -i \"{videoDataConverting.SourcePath}\" ");
             ffmpegArgs.Append($"-i \"{videoDataConverting.SourcePath}\" ");
             ffmpegArgs.Append(GetLogoOverlayArgs(videoDataConverting));
 
@@ -940,18 +933,21 @@ namespace xPlatformLukma
             }
 
             string iBitrate = GetBitRate();
-            ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v libx264 -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\"");
-            /*
+            
             //Hardware acceleration encoding
             if (winPlatform)        
             {
-                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_nvenc -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\""); // Use NVENC for Windows
+                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_qsv -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"");
+                //ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_nvenc -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\""); // Use NVENC for Windows
             }
             else
             {
-                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_videotoolbox -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\""); // Use VideoToolbox for macOS
+                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_videotoolbox -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\""); // Use VideoToolbox for macOS
             }
-            */
+            
+            //Base software conversion
+            //ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v libx264 -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\"");
+            
 
             if (!winPlatform)
             {
@@ -981,22 +977,13 @@ namespace xPlatformLukma
                 ffmpeg.Start();
                 completionTimer.Start();
                 // Run ShowPercentComplete concurrently
-                //var progressTask = Task.Run(() => ShowPercentComplete());
                 ShowPercentComplete(ffmpeg);
-                //completionTimer.Tick += PercentCompleteTracker;
-
-                // Wait for ffmpeg to complete
-                //await ffmpeg.WaitForExitAsync();
-
-                // Ensure progress tracking completes
-                //await progressTask;
-                
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Exception after ffmpeg.Start: " + ex.Message);
-                ShowErrorMessage("Exception after ffmpeg.Start: " + ex.Message);
+                Dispatcher.UIThread.Post(() => ShowErrorMessage("Exception after ffmpeg.Start: " + ex.Message), DispatcherPriority.Normal);
             }
 
             //ListOfFiles.Remove(videoDataConverting);          moved to show function
@@ -1058,7 +1045,7 @@ namespace xPlatformLukma
                 //while ((line = await reader.ReadLineAsync()) != null)
                 {
                     //----DEBUG----//
-                    //Debug.WriteLine("From ffmpeg: " + line);
+                    Debug.WriteLine("From ffmpeg: " + line);
 
                     // Try to capture total duration
                     if (string.IsNullOrEmpty(duration))
@@ -1085,6 +1072,12 @@ namespace xPlatformLukma
                         Debug.WriteLine($"Conversion complete: {percent}");
                     }
                 }
+                int exitError = ffmpeg.ExitCode;
+                if (exitError != 0)
+                {
+                    Dispatcher.UIThread.Post(() => ShowErrorMessage($"FFmpeg failed (Exit Code: {exitError})"), DispatcherPriority.Normal);
+                    //Debug.WriteLine($"FFmpeg failed (Exit Code: {ffmpeg.ExitCode})");
+                }
 
                 reader.Dispose();       //Not sure if this is really needed
                 ffmpeg.Dispose();       //Not sure if this is really needed
@@ -1092,7 +1085,8 @@ namespace xPlatformLukma
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error in ShowPercentComplete: {ex.Message}");
-                ShowErrorMessage($"ffmpeg Error: {ex.Message}");
+                Dispatcher.UIThread.Post(() => ShowErrorMessage($"Error in ShowPercentComplete: {ex.Message}"), DispatcherPriority.Normal);
+                //ShowErrorMessage($"ffmpeg Error: {ex.Message}");
             }
 
             //Everything should be done
@@ -1431,7 +1425,7 @@ namespace xPlatformLukma
             _media?.Dispose();          //Checks if it's null and then runs Dispose
             _mp?.Dispose();
             _libVLC?.Dispose();
-            mutex.ReleaseMutex();
+            mutex.Close();
             if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime) lifetime.Shutdown();
         }
 
