@@ -27,6 +27,7 @@ namespace xPlatformLukma
         public string workingDirectoryVar;      //variable for working directory used by ffmpeg
         public int bitRate;                     //variable for storing bitrate.
         public int cleanupAfterDays;            //How far back to look to delete old video files
+        public int useHardwareAccel;           //use hardware acceleration for video conversion
 
         public Dictionary<string, string> customLogos;  //Used to house custom logos list
 
@@ -306,9 +307,6 @@ namespace xPlatformLukma
             File.AppendAllText(filePath, addedString);
 
         }
-
-
-
 
     }
 }

@@ -35,13 +35,19 @@ namespace xPlatformLukma
         public string CleanUpFolder() 
         {
             string sErrors = "";
-            List<string> fileList = SearchFoldersForFiles(_baseFolder, _dayCount, _currentDate);
-
-            if (fileList.Count > 0)
+            if (Directory.Exists(_baseFolder))
             {
-                sErrors = DeleteOldFiles(fileList);
-            }
+                List<string> fileList = SearchFoldersForFiles(_baseFolder, _dayCount, _currentDate);
 
+                if (fileList.Count > 0)
+                {
+                    sErrors = DeleteOldFiles(fileList);
+                }
+            }
+            else 
+            {
+                sErrors = "Files cannot be cleaned up. Folder doesn't exist: " + _baseFolder;
+            }
 
             return sErrors;
         }

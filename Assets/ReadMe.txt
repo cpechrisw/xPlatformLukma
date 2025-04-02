@@ -48,6 +48,7 @@ Search remembers where you last looked for a video
 Code refactoring for memory improvements
 Multiple instance of application are not allowed
 Fixed video rotation problem when video is not recorded normally(i.e. gopro is upside down)
+Added hardware acceleration and option in Settings menu (default is on)
 
 ----1.7.0----
 Improved error messages when a logo can't be found

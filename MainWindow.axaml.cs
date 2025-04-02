@@ -95,7 +95,7 @@ namespace xPlatformLukma
                 if (App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime)
                 {
                     string msg = "One instance of application is already open. Closing new instance";
-                    //Debug.Write(msg);
+                    //Debug.Writeline(msg);
                     ShowErrorMessageAndClose(msg);
                     //lifetime.Shutdown();
                 }
@@ -170,6 +170,7 @@ namespace xPlatformLukma
             "";
             configInfo.bitRate = -1;
             configInfo.cleanupAfterDays = -1;
+            configInfo.useHardwareAccel = -1;
 
             //Setting defaults that should not change
             SetDefaultConfigPaths();
@@ -194,19 +195,34 @@ namespace xPlatformLukma
                             
                             switch (sParameter)
                             {
-                                case "bitrate":
-                                    int tmpInt = 0;
+                                case "hardwareAccel":
+                                    int tmpIntHardwareAccel = 0;
                                     try
                                     {
-                                        tmpInt = Int32.Parse(sValue);
+                                        tmpIntHardwareAccel = Int32.Parse(sValue);
                                     }
-                                    catch(FormatException)
+                                    catch (FormatException)
                                     {
-                                        string[] tmpStringArray = { "bitrate", tmpInt.ToString() };
+                                        string[] tmpStringArray = { "hardwareAccel", tmpIntHardwareAccel.ToString() };
                                         updateList.Add(tmpStringArray);
                                         errorWithConfigFile = true;
                                     }
-                                    configInfo.bitRate = tmpInt;
+                                    configInfo.useHardwareAccel = tmpIntHardwareAccel;
+                                    break;
+
+                                case "bitrate":
+                                    int tmpIntBit = 0;
+                                    try
+                                    {
+                                        tmpIntBit = Int32.Parse(sValue);
+                                    }
+                                    catch(FormatException)
+                                    {
+                                        string[] tmpStringArray = { "bitrate", tmpIntBit.ToString() };
+                                        updateList.Add(tmpStringArray);
+                                        errorWithConfigFile = true;
+                                    }
+                                    configInfo.bitRate = tmpIntBit;
                                     break; 
                                 
                                 case "cleanupAfterDays":
@@ -311,6 +327,7 @@ namespace xPlatformLukma
                 Utils.UpdateConfigFile(configInfo, "convertedVideosTopDir", configInfo.convertedVideosTopDir);
                 Utils.UpdateConfigFile(configInfo, "bitrate", configInfo.bitRate.ToString());
                 Utils.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.cleanupAfterDays.ToString());
+                Utils.UpdateConfigFile(configInfo, "hardwareAccel", configInfo.useHardwareAccel.ToString());
 
             }
 
@@ -327,7 +344,12 @@ namespace xPlatformLukma
             if (configInfo.cleanupAfterDays < 0)
             {
                 configInfo.cleanupAfterDays = 0;
-                Utils.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.bitRate.ToString());
+                Utils.UpdateConfigFile(configInfo, "cleanupAfterDays", configInfo.cleanupAfterDays.ToString());
+            }
+            if (configInfo.useHardwareAccel < 0)
+            {
+                configInfo.useHardwareAccel = 1;
+                Utils.UpdateConfigFile(configInfo, "hardwareAccel", configInfo.useHardwareAccel.ToString());
             }
 
 
@@ -933,22 +955,24 @@ namespace xPlatformLukma
             }
 
             string iBitrate = GetBitRate();
-            
-            //Hardware acceleration encoding
-            if (winPlatform)        
+            string codec = "libx264";
+            if ( configInfo.useHardwareAccel == 1)
             {
-                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_qsv -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"");
-                //ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_nvenc -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\""); // Use NVENC for Windows
-            }
-            else
-            {
-                ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v h264_videotoolbox -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\""); // Use VideoToolbox for macOS
+                //Hardware acceleration encoding
+                if (winPlatform)
+                {
+                    codec = "h264_qsv";      //(intel acceleration)
+                    //fh264_nvenc;          // Use NVENC for Windows (Nvidia acceleration)
+                }
+                else
+                {
+                    codec = "h264_videotoolbox"; // Use VideoToolbox for macOS
+                }
             }
             
-            //Base software conversion
-            //ffmpegArgs.Append($"-s hd{videoDataConverting.Resolution} -c:v libx264 -crf {iBitrate} -an \"{videoDataConverting.UploadPath}\"");
+            string ffmpegCommand = $"-s hd{videoDataConverting.Resolution} -c:v {codec} -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"";
+            ffmpegArgs.Append(ffmpegCommand);
             
-
             if (!winPlatform)
             {
                 ffmpegArgs.Replace('\\', '/');
@@ -1354,7 +1378,7 @@ namespace xPlatformLukma
         }
 
 
-        private async void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
+        private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             Dispatcher.UIThread.Post(async () => await UpdateTimerFromSlider(e), DispatcherPriority.Background);
         }
@@ -1366,9 +1390,10 @@ namespace xPlatformLukma
             return Task.CompletedTask;
         }
 
-        private async void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
+        private void MP_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
         {
             Dispatcher.UIThread.Post(async () => await UpdateTimeLabelsFromVideo(), DispatcherPriority.Background);
+            //Dispatcher.UIThread.Post(() => UpdateTimeLabelsFromVideo(), DispatcherPriority.Background);
         }
 
         private Task UpdateTimeLabelsFromVideo()

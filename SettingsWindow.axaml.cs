@@ -12,7 +12,7 @@ namespace xPlatformLukma;
 public partial class SettingsWindow : Window
 {
     public ConfigStruct myConfigInfo;
-    Utils newUtil;
+    //Utils newUtil;
     public SettingsWindow()
     {
         InitializeComponent();
@@ -21,10 +21,11 @@ public partial class SettingsWindow : Window
         : this()
     {
         myConfigInfo = configInfo;
-        newUtil = new Utils();
+        //newUtil = new Utils();
         Load_Bitrate_ComboBox();
         LoadVideoDirectories();
         Load_CleanupDays_ComboBox();
+        Load_HardwareAccel_ckbox();
         InitializeEvents();
     }
 
@@ -76,7 +77,22 @@ public partial class SettingsWindow : Window
         combo_VideoBitrate.SelectionChanged += BitrateCombo_SelectedIndexChanged;
         combo_CleanupDays.SelectionChanged += CleanupDaysCombo_SelectedIndexChanged;
         btn_Cleanup.Click += CleanupNow_Click;
+        ckbox_hardwareAccel.Click += Ckbox_hardwareAccel_Click;
     }
+
+    private void Load_HardwareAccel_ckbox()
+    {
+        if(myConfigInfo.useHardwareAccel == 0)
+        {
+            ckbox_hardwareAccel.IsChecked = false;
+        }
+        else
+        {
+            ckbox_hardwareAccel.IsChecked = true;
+        }
+        
+    }
+    
 
     private void Load_Bitrate_ComboBox()
     {
@@ -103,33 +119,33 @@ public partial class SettingsWindow : Window
         combo_CleanupDays.Items.Add("30");
         combo_CleanupDays.Items.Add("60");
         combo_CleanupDays.Items.Add("90");
-        
-        switch (myConfigInfo.cleanupAfterDays)
+
+        combo_CleanupDays.SelectedIndex = myConfigInfo.cleanupAfterDays switch
         {
-            case 0:
-                combo_CleanupDays.SelectedIndex = 0;
-                break;
-
-            case 30:
-                combo_CleanupDays.SelectedIndex = 1;
-                break;
-
-            case 60:
-                combo_CleanupDays.SelectedIndex = 2;
-                break;
-
-            case 90:
-                combo_CleanupDays.SelectedIndex = 3;
-                break;
-            default:
-                combo_CleanupDays.SelectedIndex = 0;
-                break;
-        }
-        
+            0 => 0,
+            30 => 1,
+            60 => 2,
+            90 => 3,
+            _ => 0,
+        };
     }
     //
     //---------Button Click Events
     //
+    private void Ckbox_hardwareAccel_Click(object sender, EventArgs e)
+    {
+        if (ckbox_hardwareAccel.IsChecked == true)
+        {
+            myConfigInfo.useHardwareAccel = 1;
+        }
+        else
+        {
+            myConfigInfo.useHardwareAccel = 0;
+        }
+        Utils.UpdateConfigFile(myConfigInfo, "hardwareAccel", myConfigInfo.useHardwareAccel.ToString());
+    }
+
+
     private void BitrateCombo_SelectedIndexChanged(object sender, EventArgs e)
     {
         int selectedIndex = combo_VideoBitrate.SelectedIndex;
