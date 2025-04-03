@@ -165,25 +165,33 @@
 
 
 					<!--Frame resolution Calendar picker -->
-					<Grid Grid.Row="4" ColumnDefinitions="Auto,*,Auto" Margin="5,5,5,0">
+					<StackPanel Orientation="Vertical" Grid.Row="4">
+						<Grid  ColumnDefinitions="Auto,*,Auto" Margin="5,5,5,0">
 
-						<!--Calendar-->
-						<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Right">
-							<Label FontWeight="Bold" >Video Date: </Label>
-							<CalendarDatePicker Name="date_DatePicker1" Grid.Column="2"
-											SelectedDateFormat="Short" Margin="0,0,0,0"/>
+							<!--Calendar-->
+							<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Right">
+								<Label FontWeight="Bold" >Video Date: </Label>
+								<CalendarDatePicker Name="date_DatePicker1" Grid.Column="2"
+												SelectedDateFormat="Short" Margin="0,0,0,0"/>
+							</StackPanel>
+							<!--Video Quality-->
+							<StackPanel Grid.Column="2" Name="pnl_VideoQuality" Orientation="Vertical" HorizontalAlignment="Left">
+								<Label FontWeight="Bold" >Video Quality: </Label>
+								<ComboBox Name="combo_VideoQuality"  PlaceholderText="quality" 
+											FontSize="12" Width="100" MaxDropDownHeight="200">
+								</ComboBox>
+							</StackPanel>
+						</Grid>
+						<!--Preserve category checkbox-->
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Background="Black" Width="180" TextWrapping="Wrap"
+									   Margin="2,7,0,0"
+									   Text="Preserve Category/Name"/>
+							<CheckBox Name="ckbox_PreserveCateg" Margin="0,0,0,0"
+									  />
 						</StackPanel>
-						<!--Video Quality-->
-						<StackPanel Grid.Column="2" Name="pnl_VideoQuality" Orientation="Vertical" HorizontalAlignment="Left">
-							<Label FontWeight="Bold" >Video Quality: </Label>
-							<ComboBox Name="combo_VideoQuality"  PlaceholderText="quality" 
-										FontSize="12" Width="100" MaxDropDownHeight="200">
-							</ComboBox>
-						</StackPanel>
-						
-
-
-					</Grid>
+					</StackPanel>
+					
 					<!--Save/Clear buttons-->
 					<StackPanel  Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center"
 								 Margin="0,5,0,0">
@@ -191,6 +199,7 @@
 								IsEnabled="False" Content="Save"/>
 						<Button Name="btn_Clear" Width="55" HorizontalContentAlignment="Center" Content="Clear"/>
 					</StackPanel>
+					
 					<!--Progress label-->
 					<TextBlock Name="lbl_progressLabel" Grid.Row="6" Background="Black" FontSize="12"
 							   Width="240" TextWrapping="WrapWithOverflow"

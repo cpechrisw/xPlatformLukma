@@ -28,6 +28,8 @@ namespace xPlatformLukma
         public int bitRate;                     //variable for storing bitrate.
         public int cleanupAfterDays;            //How far back to look to delete old video files
         public int useHardwareAccel;           //use hardware acceleration for video conversion
+        public string PreviousCategoryDrowdown;         //used in conjunction with preserve checkbox
+        public string PreviousNameDrowdown;             //used in conjunction with preserve checkbox
 
         public Dictionary<string, string> customLogos;  //Used to house custom logos list
 
@@ -43,7 +45,6 @@ namespace xPlatformLukma
         public DateTime FileCreated;
         public string ClipStartTime;
         public string ClipEndTime;
-        public bool BeingConverted;
     }
 
     //

@@ -16,7 +16,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic.FileIO;
 using System.Runtime.InteropServices;
-using LibVLCSharp.Avalonia;
+//using LibVLCSharp.Avalonia;
 using System.Text;
 using System.Collections.Concurrent;
 
@@ -812,6 +812,9 @@ namespace xPlatformLukma
                 nameCombo = combo_CatSubName.SelectedValue.ToString();
             }
             
+            SetPreserveCategory(catCombo, nameCombo);
+
+
             string fileName = CreateFileName();          //append unique identifier, resolution
             string extension = Path.GetExtension(currentVideoPath);
             string originalFile = fileName + extension;
@@ -912,7 +915,32 @@ namespace xPlatformLukma
                 Task.Run(async () => await ConvertAllVideos());
             }
         }
-        
+        private void SetPreserveCategory(string category, string name)
+        {
+            configInfo.PreviousCategoryDrowdown = category;
+            configInfo.PreviousNameDrowdown = name;
+        }
+
+        private void UpdateCategoryDropdown(object sender, EventArgs e)
+        {
+            try
+            {
+                if(configInfo.PreviousCategoryDrowdown != "")
+                {
+                    combo_CategoryComboBox.SelectedItem = configInfo.PreviousCategoryDrowdown;
+
+                    if (configInfo.PreviousNameDrowdown != "")
+                    {
+                        combo_CatSubName.SelectedItem = configInfo.PreviousNameDrowdown;
+                    }
+                }
+            }
+            catch (Exception ) 
+            {
+                ShowErrorMessage("Error setting Category and Name dropdowns");
+            }
+
+        }
         private async Task ConvertAllVideos()
         {
             while ( !ListOfFiles.IsEmpty )
@@ -1069,7 +1097,7 @@ namespace xPlatformLukma
                 //while ((line = await reader.ReadLineAsync()) != null)
                 {
                     //----DEBUG----//
-                    Debug.WriteLine("From ffmpeg: " + line);
+                    //Debug.WriteLine("From ffmpeg: " + line);
 
                     // Try to capture total duration
                     if (string.IsNullOrEmpty(duration))
@@ -1093,7 +1121,7 @@ namespace xPlatformLukma
                             Convert.ToInt32((currentTime.TotalSeconds / totalDuration.TotalSeconds) * 100);
 
                         //----DEBUG----//
-                        Debug.WriteLine($"Conversion complete: {percent}");
+                        //Debug.WriteLine($"Conversion complete: {percent}");
                     }
                 }
                 int exitError = ffmpeg.ExitCode;
@@ -1108,7 +1136,7 @@ namespace xPlatformLukma
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in ShowPercentComplete: {ex.Message}");
+                //Debug.WriteLine($"Error in ShowPercentComplete: {ex.Message}");
                 Dispatcher.UIThread.Post(() => ShowErrorMessage($"Error in ShowPercentComplete: {ex.Message}"), DispatcherPriority.Normal);
                 //ShowErrorMessage($"ffmpeg Error: {ex.Message}");
             }
@@ -1117,51 +1145,6 @@ namespace xPlatformLukma
             ListOfFiles.TryDequeue(out _);
 
         }
-        
-        /*
-        private async void ShowPercentComplete()
-        {
-            //Calculates percent complete
-            string line, current_duration, duration = "";
-            StreamReader reader = ffmpeg.StandardError;
-            while ((line = reader.ReadLine()) != null)
-            {
-                //----DEBUG----//
-                //Debug.WriteLine("From ffmpeg: " + line);
-
-                if (!string.IsNullOrEmpty(line))
-                {
-                    if (line.Contains("Duration") && line.Contains("bitrate") && line.Contains("start") && line.Contains("kb/s"))
-                    {
-                        int startPos = line.LastIndexOf("Duration: ") + "Duration: ".Length + 1;
-                        int length = line.IndexOf(", start:") - startPos;
-                        string sub = line.Substring(startPos, length);
-                        duration = sub;
-                        //----DEBUG----//
-                        //Debug.WriteLine(duration);
-                    }
-                    if (line.Contains("frame=") && line.Contains("size=") && line.Contains("time="))
-                    {
-                        int startPos = line.LastIndexOf("time=") + "Time=".Length + 1;
-                        int length = line.IndexOf(" bitrate=") - startPos;
-                        string sub = line.Substring(startPos, length);
-                        
-                        if (sub.Contains(':'))
-                        {
-                            current_duration = sub;
-                            //----DEBUG----//
-                            //Debug.WriteLine(current_duration);
-                            percent = Convert.ToInt32(Math.Round(TimeSpan.Parse(duration).TotalSeconds)) == 0 ? 0 :
-                                Convert.ToInt32(Math.Round((TimeSpan.Parse(current_duration).TotalSeconds * 100) / TimeSpan.Parse(duration).TotalSeconds, 5));
-                            //----DEBUG----//
-                            //Debug.WriteLine("Conversion complete: " + percent);
-                        }
-
-                    }
-                }
-            }
-        }
-        */
 
         //
         //Creates the filname for the video
@@ -1355,6 +1338,7 @@ namespace xPlatformLukma
             }
 
         }
+
         private static async void ShowErrorMessage(string tmpMsg)
         {
             var box = MessageBoxManager.GetMessageBoxStandard("Error", tmpMsg,
@@ -1376,7 +1360,6 @@ namespace xPlatformLukma
             }
 
         }
-
 
         private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
@@ -1457,7 +1440,7 @@ namespace xPlatformLukma
 
         private void PercentCompleteTracker(object sender, EventArgs e)
         {
-            Debug.WriteLine("PercentCompleteTrackerEvent: " + percent + " List count: " + ListOfFiles.Count );
+            //Debug.WriteLine("PercentCompleteTrackerEvent: " + percent + " List count: " + ListOfFiles.Count );
 
             if (percent < 100 && !ListOfFiles.IsEmpty)
             {
@@ -1489,7 +1472,11 @@ namespace xPlatformLukma
                 ResetClipTimeVariables();
                 PlayVideo(sResult);
             }
-
+            if (ckbox_PreserveCateg.IsChecked == true)
+            {
+                UpdateCategoryDropdown( this, e);
+            }
+            
         }
         
         private void ClearButton_Click(object sender, EventArgs e)
@@ -1705,6 +1692,7 @@ namespace xPlatformLukma
             var ownerWindow = this;
             _settingsWindow.ShowDialog(ownerWindow);
         }
+
         public void Menu_LogoClick()
         {
             _logoWindow = new(configInfo, categoriesDic);
