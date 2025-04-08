@@ -501,7 +501,7 @@ namespace xPlatformLukma
         {
             try
             {
-                MediaPlayerPlayVideo(file, 0);
+                MediaPlayerPlayVideo(file, 0, true);
                 //Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);      //not sure this is needed
 
             }
@@ -513,7 +513,9 @@ namespace xPlatformLukma
             
         }
 
-        private void MediaPlayerPlayVideo(string filename, long videoTime)
+
+        //If playMedia is false, we pause the media
+        private void MediaPlayerPlayVideo(string filename, long videoTime,bool playMedia)
         {
 
             if (File.Exists(filename))
@@ -524,7 +526,10 @@ namespace xPlatformLukma
 
                 //Video slider initialization
                 _mp.Play(_media);
-                
+                if (!playMedia)
+                {
+                    _mp.SetPause(true);
+                }
                 _mp.TimeChanged += MP_TimeChanged;
                 _mp.Time = videoTime;
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
@@ -551,7 +556,6 @@ namespace xPlatformLukma
                 _mp.Pause();
                 _mp.TimeChanged -= MP_TimeChanged;
                 slider_VideoSlider.ValueChanged -= SL_TimeChanged;
-                
                 //_mp?.Dispose();       //This is causing the popout
                 //_mp = new MediaPlayer(_libVLC);
                 //VideoViewer.MediaPlayer = _mp;
@@ -874,8 +878,8 @@ namespace xPlatformLukma
                 //FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.OnlyErrorDialogs);
                 FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"");
                 long currentVideoPosition = _mp.Time;
-                ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile, currentVideoPosition));
-
+                ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile, currentVideoPosition, false));
+                
             }
             catch (Exception ex)
             {

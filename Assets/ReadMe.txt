@@ -39,7 +39,7 @@ Questions or Issues, see the 'About' from the Configure->About menu
 
 
 ----Known Issues----
-Mac - Maximizing Lukma can cause video playback issues
+Yeah! None currently
 
 
 ----Version Information----
@@ -50,6 +50,7 @@ Multiple instance of application are not allowed
 Fixed video rotation problem when video is not recorded normally(i.e. gopro is upside down)
 Added hardware acceleration and option in Settings menu (default is on)
 New option to perserve category and name dropdowns ()
+Fixed: Maximizing Lukma can cause video playback issues
 
 ----1.7.0----
 Improved error messages when a logo can't be found
