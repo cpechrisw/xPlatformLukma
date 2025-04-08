@@ -530,7 +530,7 @@ namespace xPlatformLukma
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
                 _mp.AspectRatio = null;     //added to try and help with MacOS issue of fullscreen issue
-                //_mp.Scale = 0;              //added to try and help with MacOS issue of fullscreen issue
+                _mp.Scale = 1.0f;              //added to try and help with MacOS issue of fullscreen issue
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
                 Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Normal);
@@ -1124,14 +1124,18 @@ namespace xPlatformLukma
                         //Debug.WriteLine($"Conversion complete: {percent}");
                     }
                 }
-                int exitError = ffmpeg.ExitCode;
-                if (exitError != 0)
-                {
-                    Dispatcher.UIThread.Post(() => ShowErrorMessage($"FFmpeg failed (Exit Code: {exitError})"), DispatcherPriority.Normal);
-                    //Debug.WriteLine($"FFmpeg failed (Exit Code: {ffmpeg.ExitCode})");
-                }
-
+                
                 reader.Dispose();       //Not sure if this is really needed
+                if (ffmpeg.HasExited)
+                {
+                    int exitError = ffmpeg.ExitCode;
+                    if (exitError != 0)
+                    {
+                        Dispatcher.UIThread.Post(() => ShowErrorMessage($"FFmpeg failed (Exit Code: {exitError})"), DispatcherPriority.Normal);
+                        //Debug.WriteLine($"FFmpeg failed (Exit Code: {ffmpeg.ExitCode})");
+                    }
+                }
+                
                 ffmpeg.Dispose();       //Not sure if this is really needed
             }
             catch (Exception ex)
