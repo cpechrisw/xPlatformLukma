@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
@@ -6,6 +7,7 @@ namespace xPlatformLukma
 {
     public partial class App : Application
     {
+        public static Window MainAppWindow { get; private set; }
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -15,7 +17,8 @@ namespace xPlatformLukma
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow();
+                MainAppWindow = new MainWindow();
+                desktop.MainWindow = MainAppWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

@@ -18,9 +18,13 @@ MacOS will be provided with Lukma or can be found manually above. Manually can b
 ---Manually editing any config files is unsupported and will have unexpected consequences---
 New license.ini files goes in the config directory. XPlatformLukma --> Contents --> MacOS --> Config. It should be in there after installation.
 
+Preserve Category/Name checkbox - After you search for a video, it will use the last Category/Name that was last used. Great for events, single team, or single videographer use.
+
+Eject Media After Save - Tries to eject the media after you hit save. It does check to verify the drive type before ejecting. if it's not usb, it won't eject it.
+
 Trimming videos - Trim start must be before trim end. Both Start and End trim have to be defined. If they aren't, the video will not be processes.
 
-Settings dialog – Unconverted videos is where it will copy the video to before it gets converted. Teams will get their own directory. All other categories will be put in directory structure based on the date. Converted videos directory is the top level directory of where all converted videos get stored. Private teams get a separate directory. Teams gets a separate directory. All other categories go into another directory. From that top level directory ‘Teams’ category goes into ‘teamuploadvideos’ directory. From that top level directory ‘Teams - Private’ category goes into ‘privateteamuploadvideos’ directory. Allother categories go to an ‘uploadvideos’ directory. Bitrate is defaulted to low. Comparatively Low is about half the file size of High
+Settings dialog – Unconverted videos is where it will copy the video to before it gets converted. Teams will get their own directory. All other categories will be put in directory structure based on the date. Converted videos directory is the top level directory of where all converted videos get stored. Private teams get a separate directory. Teams gets a separate directory. All other categories go into another directory. From that top level directory ‘Teams’ category goes into ‘teamuploadvideos’ directory. From that top level directory ‘Teams - Private’ category goes into ‘privateteamuploadvideos’ directory. Allother categories go to an ‘uploadvideos’ directory. Bitrate is defaulted to low. Comparatively Low is about half the file size of High. Hardware acceleration option (uses graphics card to convert video). Defualt is on, if you see errors with conversion, uncheck it.
 
 Categories and Names dialog – ‘Fun Jumper’ category is the only protected category. ‘Teams’ and ‘Teams – Private’ are handled differently but are not protected. All other categories are handled the same. If you create a new category, make sure to add a name in that category.
 
@@ -43,6 +47,9 @@ Yeah! None currently
 
 
 ----Version Information----
+----1.9.0---- coming soon!
+Added New Eject Media after save option
+
 ----1.8.0----
 Search remembers where you last looked for a video
 Code refactoring for memory improvements
@@ -51,6 +58,7 @@ Fixed video rotation problem when video is not recorded normally(i.e. gopro is u
 Added hardware acceleration and option in Settings menu (default is on)
 New option to perserve category and name dropdowns ()
 Fixed: Maximizing Lukma can cause video playback issues
+Fixed: added empty folder cleanup to the file cleanup
 
 ----1.7.0----
 Improved error messages when a logo can't be found

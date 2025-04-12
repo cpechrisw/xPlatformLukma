@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 //using LibVLCSharp.Avalonia;
 using System.Text;
 using System.Collections.Concurrent;
+using LibVLCSharp.Avalonia;
 
 
 namespace xPlatformLukma
@@ -534,8 +535,10 @@ namespace xPlatformLukma
                 _mp.Time = videoTime;
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
                 _mp.Mute = true;
-                _mp.AspectRatio = null;     //added to try and help with MacOS issue of fullscreen issue
-                _mp.Scale = 1.0f;              //added to try and help with MacOS issue of fullscreen issue
+                
+                //Specific for a Mac issue when maximized
+                Dispatcher.UIThread.Post(() => CheckWindowState(), DispatcherPriority.Normal);
+
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
                 Dispatcher.UIThread.Post(() => UpdateClipLabels(), DispatcherPriority.Normal);
@@ -545,6 +548,16 @@ namespace xPlatformLukma
             {
                 Debug.WriteLine("File not found: " + filename);
                 Console.WriteLine("File not found: " + filename);
+            }
+        }
+        private void CheckWindowState()
+        {
+            // if the application is maximixed, for the scale due to a an issue specific to MacOS
+            if (App.MainAppWindow.WindowState != WindowState.Normal)
+            {
+                _mp.AspectRatio = $"{VideoViewer.Width}:{VideoViewer.Height}";    //explicitely setting aspect ratio
+                //_mp.AspectRatio = null;     //make vlc manage the apsect ratio
+                //_mp.Scale = 1.0f;           //This sets the window size
             }
         }
 
