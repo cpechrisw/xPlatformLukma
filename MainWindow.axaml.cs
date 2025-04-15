@@ -16,7 +16,6 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic.FileIO;
 using System.Runtime.InteropServices;
-//using LibVLCSharp.Avalonia;
 using System.Text;
 using System.Collections.Concurrent;
 using LibVLCSharp.Avalonia;
@@ -141,7 +140,9 @@ namespace xPlatformLukma
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             this.Opened += CheckLicense;
-            _libVLC.Log += (sender, e) => Debug.WriteLine($"VLC_Debug: [{e.Level}] {e.Message}");
+            //VLC debugging
+            //_libVLC.Log += (sender, e) => Debug.WriteLine($"VLC_Debug: [{e.Level}] {e.Message}");
+            
             //Check for cleanup
             RunCleanup();
             
@@ -557,7 +558,7 @@ namespace xPlatformLukma
             //{
                 Debug.WriteLine($"Debug: viewerBound width:height- {VideoViewer.Bounds.Width}:{VideoViewer.Bounds.Height}");
                 _mp.AspectRatio = $"{VideoViewer.Bounds.Width}:{VideoViewer.Bounds.Height}";    //explicitely setting aspect ratio
-            
+                VideoViewer.InvalidateVisual();     //forces a resize
             //_mp.AspectRatio = null;     //make vlc manage the apsect ratio
             //_mp.Scale = 1.0f;           //This sets the window size
             //}

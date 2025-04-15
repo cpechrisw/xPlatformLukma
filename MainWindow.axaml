@@ -63,7 +63,6 @@
 				<!--<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>-->
 				<Panel Grid.Row="0" Background="Black" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<vlc:VideoView x:Name="VideoViewer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-					<!--<vlc:VideoView Name="videoView" MediaPlayer="{Binding MediaPlayer}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />-->
 				</Panel>
 				
 				<!--Bottom Sliders and buttons-->
