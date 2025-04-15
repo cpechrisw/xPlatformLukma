@@ -124,10 +124,8 @@ namespace xPlatformLukma
             
             //VLC initialization and View controls
             Core.Initialize();
-            _libVLC = new LibVLC("--input-repeat=2");   //"--verbose=2"
+            _libVLC = new LibVLC("--input-repeat=2","--no-audio");   //"--verbose=2"
             _mp = new MediaPlayer(_libVLC);
-            //_videoViewer = this.Get<VideoView>("VideoViewer");
-            //_mp.EndReached += MediaEndReached;
             VideoViewer.MediaPlayer = _mp;
             
             //Structure Intializations
@@ -532,10 +530,9 @@ namespace xPlatformLukma
 
                 // Create a new Media object each time
                 using var media = new Media(_libVLC, filename, FromType.FromPath);
-                _mp.Media = media;
 
                 // Play
-                _mp.Play();
+                _mp.Play(media);
 
                 //Pausing if playMedia is false
                 if (!playMedia)
@@ -545,10 +542,6 @@ namespace xPlatformLukma
                 _mp.TimeChanged += MP_TimeChanged;
                 _mp.Time = videoTime;
                 slider_VideoSlider.ValueChanged += SL_TimeChanged;
-                _mp.Mute = true;
-                
-                //Specific for a Mac issue when maximized
-                //Dispatcher.UIThread.Post(() => CheckWindowState(), DispatcherPriority.Normal);
 
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
@@ -561,19 +554,7 @@ namespace xPlatformLukma
                 Console.WriteLine("File not found: " + filename);
             }
         }
-        private void CheckWindowState()
-        {
-            // if the application is maximixed, for the scale due to a an issue specific to MacOS
-            //if (App.MainAppWindow.WindowState != WindowState.Normal)
-            //{
-                Debug.WriteLine($"Debug: viewerBound width:height- {VideoViewer.Bounds.Width}:{VideoViewer.Bounds.Height}");
-                _mp.AspectRatio = $"{VideoViewer.Bounds.Width}:{VideoViewer.Bounds.Height}";    //explicitely setting aspect ratio
-                VideoViewer.InvalidateVisual();     //forces a resize
-            //_mp.AspectRatio = null;     //make vlc manage the apsect ratio
-            //_mp.Scale = 1.0f;           //This sets the window size
-            //}
-        }
-
+        
         private void MediaPlayerStopVideo()
         {
             if (_mp.IsPlaying)
