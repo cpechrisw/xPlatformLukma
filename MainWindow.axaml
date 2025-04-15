@@ -5,8 +5,8 @@
 		xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
 		
         mc:Ignorable="d" 
-		d:DesignWidth="800" d:DesignHeight="550"
-		MinHeight="550" MinWidth="800"
+		d:DesignWidth="800" d:DesignHeight="580"
+		MinHeight="580" MinWidth="800"
         x:Class="xPlatformLukma.MainWindow"
 		x:Name="xMainPage"
 		RequestedThemeVariant="Dark"
@@ -61,7 +61,7 @@
 			<Grid Grid.Column="1" RowDefinitions="*,Auto" >
 				<!--The view-->
 				<!--<Rectangle  Grid.Row="0" Fill="Black" ></Rectangle>-->
-				<Panel Grid.Row="0" Background="Black">
+				<Panel Grid.Row="0" Background="Black" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<vlc:VideoView x:Name="VideoViewer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 					<!--<vlc:VideoView Name="videoView" MediaPlayer="{Binding MediaPlayer}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />-->
 				</Panel>
@@ -190,6 +190,16 @@
 							<CheckBox Name="ckbox_PreserveCateg" Margin="0,0,0,0"
 									  />
 						</StackPanel>
+						<!--Eject Media checkbox-->
+						<!--
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Background="Black" Width="180" TextWrapping="Wrap"
+									   Margin="2,0,0,0"
+									   Text="Eject Media After Save"/>
+							<CheckBox Name="ckbox_EjectMedia" Margin="0,-7,0,0"
+									  />
+						</StackPanel>
+						-->
 					</StackPanel>
 					
 					<!--Save/Clear buttons-->

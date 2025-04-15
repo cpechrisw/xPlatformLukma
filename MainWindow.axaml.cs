@@ -131,7 +131,6 @@ namespace xPlatformLukma
             //_mp.EndReached += MediaEndReached;
             VideoViewer.MediaPlayer = _mp;
 
-
             //Structure Intializations
             //newUtil = new Utils();
             configInfo = new ConfigStruct();
@@ -142,6 +141,7 @@ namespace xPlatformLukma
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
             this.Opened += CheckLicense;
+            _libVLC.Log += (sender, e) => Debug.WriteLine($"VLC_Debug: [{e.Level}] {e.Message}");
             //Check for cleanup
             RunCleanup();
             
@@ -553,12 +553,14 @@ namespace xPlatformLukma
         private void CheckWindowState()
         {
             // if the application is maximixed, for the scale due to a an issue specific to MacOS
-            if (App.MainAppWindow.WindowState != WindowState.Normal)
-            {
-                _mp.AspectRatio = $"{VideoViewer.Width}:{VideoViewer.Height}";    //explicitely setting aspect ratio
-                //_mp.AspectRatio = null;     //make vlc manage the apsect ratio
-                //_mp.Scale = 1.0f;           //This sets the window size
-            }
+            //if (App.MainAppWindow.WindowState != WindowState.Normal)
+            //{
+                Debug.WriteLine($"Debug: viewerBound width:height- {VideoViewer.Bounds.Width}:{VideoViewer.Bounds.Height}");
+                _mp.AspectRatio = $"{VideoViewer.Bounds.Width}:{VideoViewer.Bounds.Height}";    //explicitely setting aspect ratio
+            
+            //_mp.AspectRatio = null;     //make vlc manage the apsect ratio
+            //_mp.Scale = 1.0f;           //This sets the window size
+            //}
         }
 
         private void MediaPlayerStopVideo()
