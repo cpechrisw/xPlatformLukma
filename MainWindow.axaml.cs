@@ -129,7 +129,7 @@ namespace xPlatformLukma
             //_videoViewer = this.Get<VideoView>("VideoViewer");
             //_mp.EndReached += MediaEndReached;
             VideoViewer.MediaPlayer = _mp;
-
+            
             //Structure Intializations
             //newUtil = new Utils();
             configInfo = new ConfigStruct();
@@ -152,6 +152,7 @@ namespace xPlatformLukma
         {
             return System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         }
+        
 
         //-----Reads the config files
         public void ReadConfig()  //How to read configuration from config file
@@ -524,10 +525,19 @@ namespace xPlatformLukma
             {
                
                 MediaPlayerStopVideo();
-                _media = new Media(_libVLC, filename);
+                
+                // Stop and dispose the previous media
+                _mp.Stop();
+                _mp.Media?.Dispose();
 
-                //Video slider initialization
-                _mp.Play(_media);
+                // Create a new Media object each time
+                using var media = new Media(_libVLC, filename, FromType.FromPath);
+                _mp.Media = media;
+
+                // Play
+                _mp.Play();
+
+                //Pausing if playMedia is false
                 if (!playMedia)
                 {
                     _mp.SetPause(true);
@@ -538,7 +548,7 @@ namespace xPlatformLukma
                 _mp.Mute = true;
                 
                 //Specific for a Mac issue when maximized
-                Dispatcher.UIThread.Post(() => CheckWindowState(), DispatcherPriority.Normal);
+                //Dispatcher.UIThread.Post(() => CheckWindowState(), DispatcherPriority.Normal);
 
                 _media?.Dispose();
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(true), DispatcherPriority.Normal);
@@ -573,8 +583,7 @@ namespace xPlatformLukma
                 _mp.TimeChanged -= MP_TimeChanged;
                 slider_VideoSlider.ValueChanged -= SL_TimeChanged;
                 //_mp?.Dispose();       //This is causing the popout
-                //_mp = new MediaPlayer(_libVLC);
-                //VideoViewer.MediaPlayer = _mp;
+                
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(false), DispatcherPriority.Normal);
             }
             
