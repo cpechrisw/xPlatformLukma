@@ -638,7 +638,7 @@ namespace xPlatformLukma
             License testLicense = new(configDir);
             //For creating new License file,
             ////  -----Comment out when done creating file--------------
-            //testLicense.WriteNewLicenseFile(configDir, 2030);
+            //testLicense.WriteNewLicenseFile(configDir, 2025);
             //
             //
             if (!testLicense.IsLicValid() )
@@ -735,7 +735,7 @@ namespace xPlatformLukma
             string returnPath = "";
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
             
-            if (catCombo == "Teams" || catCombo == "Teams - Private")
+            if (catCombo == "Teams" || catCombo == "Teams - Private" || catCombo == "Events")
             {
                 string nameCombo = combo_CatSubName.SelectedValue.ToString();
                 if (configInfo.customLogos.ContainsKey(nameCombo))
@@ -833,7 +833,7 @@ namespace xPlatformLukma
             string tmpStartSourcePath;
             string tmpStartUploadPath;
 
-            if (catCombo == "Teams")    //structure for teams is team-folder/year/month/date/draw-resolution.mp4 
+            if (catCombo == "Teams" || catCombo == "Events")    //structure for teams is team-folder/year/month/date/draw-resolution.mp4 
             {
                 tmpStartSourcePath = Path.Combine(configInfo.unconvertedVideoDir, nameCombo);     //Create teamPath
                 tmpStartUploadPath = Path.Combine(configInfo.TeamUploadTopFolder, nameCombo);    //Create teamUploadPath
@@ -1168,7 +1168,7 @@ namespace xPlatformLukma
             string newFileName;
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
             string dirtyFileName = "";
-            if (catCombo == "Teams" || catCombo == "Teams - Private")  //shows dropbox for draw
+            if (catCombo == "Teams" || catCombo == "Teams - Private" || catCombo == "Events")  //shows dropbox for draw
             {
                 dirtyFileName += txtb_Description.Text;
             }

@@ -3,3 +3,4 @@ FF Organizers
 RW Organizers
 Teams
 Teams - Private
+Events

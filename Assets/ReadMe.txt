@@ -50,6 +50,10 @@ Yeah! None currently
 ----1.9.0---- coming soon!
 Added New Eject Media after save option
 
+----1.8.2----
+Added default Category Events. They are handled just like teams
+
+
 ----1.8.1----
 Search remembers where you last looked for a video
 Code refactoring for memory improvements
