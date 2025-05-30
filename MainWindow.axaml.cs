@@ -637,8 +637,8 @@ namespace xPlatformLukma
             string configDir = configInfo.configDir;
             License testLicense = new(configDir);
             //For creating new License file,
-            //  Comment out when done creating file
-            testLicense.WriteNewLicenseFile(configDir, 2025);
+            ////  -----Comment out when done creating file--------------
+            //testLicense.WriteNewLicenseFile(configDir, 2030);
             //
             //
             if (!testLicense.IsLicValid() )

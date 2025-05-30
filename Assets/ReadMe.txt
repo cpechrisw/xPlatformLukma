@@ -50,7 +50,7 @@ Yeah! None currently
 ----1.9.0---- coming soon!
 Added New Eject Media after save option
 
-----1.8.0----
+----1.8.1----
 Search remembers where you last looked for a video
 Code refactoring for memory improvements
 Multiple instance of application are not allowed
@@ -73,6 +73,6 @@ Removed primary logo requirement
 -Force popup dialogs to be closed before moving on in Lukma
 -Add an option in Settings for lower or higher bitrate (reduces the file size by half at lower bitrate)default is lower bitrate
 
-----1.6.0----
+----1.4.0----
 -Bug fix with logos dialog and added error messaging
 
