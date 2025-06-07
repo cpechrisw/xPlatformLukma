@@ -523,10 +523,6 @@ namespace xPlatformLukma
             {
                
                 MediaPlayerStopVideo();
-                
-                // Stop and dispose the previous media
-                _mp.Stop();
-                _mp.Media?.Dispose();
 
                 // Create a new Media object each time
                 using var media = new Media(_libVLC, filename, FromType.FromPath);
@@ -566,8 +562,9 @@ namespace xPlatformLukma
                 //_mp?.Dispose();       //This is causing the popout
                 
                 Dispatcher.UIThread.Post(() => UpdateVideoButtons(false), DispatcherPriority.Normal);
+                
             }
-            
+            _mp.Media?.Dispose();
         }
 
         private void InitializeButtonEventsLabels()

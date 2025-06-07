@@ -50,6 +50,9 @@ Yeah! None currently
 ----1.9.0---- coming soon!
 Added New Eject Media after save option
 
+----1.8.3----
+Fixed issue: Lukma locking up after loading searching for a video
+
 ----1.8.2----
 Added default Category Events. They are handled just like teams
 
