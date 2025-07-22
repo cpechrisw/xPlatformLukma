@@ -36,7 +36,6 @@ namespace xPlatformLukma
         private string myErrorsOnLoad = "";      //specifically for load to show errors
         //private Utils newUtil;                  //used for common functions
         
-
         private readonly bool ENABLEVIDEOCUT = true; //Global varialble to enable/disable chopping of the video
 
         //----used in ShowPercentComplete when files are being converted
@@ -140,7 +139,7 @@ namespace xPlatformLukma
             this.Opened += CheckLicense;
             //VLC debugging
             //_libVLC.Log += (sender, e) => Debug.WriteLine($"VLC_Debug: [{e.Level}] {e.Message}");
-            
+
             //Check for cleanup
             RunCleanup();
             
@@ -629,6 +628,7 @@ namespace xPlatformLukma
             RandomQuote();
         }
 
+        
         private void CheckLicense(object sender, EventArgs e)
         {
             string configDir = configInfo.configDir;
@@ -890,6 +890,7 @@ namespace xPlatformLukma
                 Debug.Write(tmpString + Environment.NewLine);
                 Console.Write(tmpString + Environment.NewLine);
                 ShowErrorMessage(tmpString);
+                return;
                 
             }       
 
@@ -915,6 +916,9 @@ namespace xPlatformLukma
 
             ListOfFiles ??= new ConcurrentQueue<VideoData>();
             ListOfFiles.Enqueue(BillvideoData);
+            
+            EjectMediaAfterSave(currentVideoPath);
+            
             ClearStuffAfterSave();
             if (!FlagConverting)
             {
@@ -922,6 +926,57 @@ namespace xPlatformLukma
                 Task.Run(async () => await ConvertAllVideos());
             }
         }
+
+        private void EjectMediaAfterSave(string VideoPath)
+        {
+            if(ckbox_EjectMedia.IsChecked == true)
+            {
+                string mediaDrive;
+                string returnErrors = "";
+                //---------For Windows---------
+                if (winPlatform)
+                {
+                    var ejectMedia = new EjectMediaWin();
+                    mediaDrive = GetMediaDriveName(VideoPath);
+                    if(String.IsNullOrEmpty(mediaDrive))
+                    {
+                        string error = "media drive not found";
+                        ShowErrorMessage(error);
+                        return;
+                    }
+                    char tmpChar = mediaDrive[0];
+                    Debug.Write("Debug: " + mediaDrive + Environment.NewLine + "Debug: " + tmpChar + Environment.NewLine);
+
+                    returnErrors = ejectMedia.EjectDisk(mediaDrive);
+
+                }
+                else
+                {
+                    //---------For MacOS---------
+                    var ejectMedia = new EjectMediaMacOS();
+                    mediaDrive = GetMediaDriveName(VideoPath);
+                    Debug.Write(mediaDrive + Environment.NewLine);
+
+                }
+
+                if (returnErrors != "")
+                {
+                    ShowErrorMessage(returnErrors);
+                }
+
+            }
+        }
+        
+        private string GetMediaDriveName(string VideoPath)
+        {
+            string returnString;
+            //returnString = Directory.GetDirectoryRoot(VideoPath);
+            returnString = Path.GetPathRoot(VideoPath);
+
+            return returnString;
+        }
+
+
         private void SetPreserveCategory(string category, string name)
         {
             configInfo.PreviousCategoryDrowdown = category;
@@ -948,6 +1003,7 @@ namespace xPlatformLukma
             }
 
         }
+        
         private async Task ConvertAllVideos()
         {
             while ( !ListOfFiles.IsEmpty )

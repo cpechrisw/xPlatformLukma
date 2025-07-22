@@ -190,7 +190,7 @@
 									  />
 						</StackPanel>
 						<!--Eject Media checkbox-->
-						<!--
+						
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Background="Black" Width="180" TextWrapping="Wrap"
 									   Margin="2,0,0,0"
@@ -198,7 +198,7 @@
 							<CheckBox Name="ckbox_EjectMedia" Margin="0,-7,0,0"
 									  />
 						</StackPanel>
-						-->
+						
 					</StackPanel>
 					
 					<!--Save/Clear buttons-->
