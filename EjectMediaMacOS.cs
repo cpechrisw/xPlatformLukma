@@ -8,8 +8,9 @@ namespace xPlatformLukma
 {
     internal class EjectMediaMacOS
     {
-        public static string EjectDisk(string diskId)
+        public string EjectDisk(string diskMountPoint)
         {
+            string diskId="";
             string Errors = "";
             //Get drives and cross check drives against what was passed
 
@@ -19,11 +20,16 @@ namespace xPlatformLukma
             foreach (UsbDrive drive in FullListDrives) 
             {
                 Debug.WriteLine($"Debug: Media Drive: {drive.Identifier}");
-                driveNames.Add(drive.Identifier);
+                if( drive.MountPoint == diskMountPoint )
+                {
+                    diskId = drive.Identifier;
+
+                }
+                
             }
-            if (!driveNames.Contains(diskId))
+            if (diskId == "")
             {
-                Errors = "Unmount failed! Trying to unmount non-Media drive: " + diskId;
+                Errors = "Unmount failed! Trying to unmount non-Media drive: " + diskId + " " + diskMountPoint;
                 return Errors;
             }
 
@@ -33,8 +39,10 @@ namespace xPlatformLukma
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "/usr/sbin/diskutil",
-                        Arguments = $"eject /dev/{diskId}",
+                        //FileName = "/usr/sbin/diskutil",
+                        //Arguments = $"eject /dev/{diskId}",
+                        FileName = "/bin/bash",
+                        Arguments = $"-c \"diskutil eject /dev/{diskId}\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false
@@ -84,8 +92,25 @@ namespace xPlatformLukma
                 string internalFlag = disk?["Internal"]?.ToString() ?? "";
                 var partitions = disk?["Partitions"]?.AsArray();
 
+
                 // Skip internal system disks
                 if (internalFlag == "true") continue;
+
+                //This only happens if the disk is directly mounted (some USBs)
+                string diskMountPoint = disk?["MountPoint"]?.ToString() ?? "";
+                string diskVolumeName = disk?["VolumeName"]?.ToString() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(diskMountPoint) )
+                {
+                    usbDrives.Add(new UsbDrive
+                    {
+                        Identifier = deviceIdentifier,
+                        VolumeName = string.IsNullOrWhiteSpace(diskVolumeName) ? "(NO NAME)" : diskVolumeName,
+                        MountPoint = diskMountPoint
+                    });
+                    continue;
+                }
+
 
                 if (partitions != null)
                 {
@@ -100,7 +125,7 @@ namespace xPlatformLukma
                             usbDrives.Add(new UsbDrive
                             {
                                 Identifier = deviceIdentifier,
-                                VolumeName = string.IsNullOrWhiteSpace(name) ? "(no name)" : name,
+                                VolumeName = string.IsNullOrWhiteSpace(name) ? "(NO NAME)" : name,
                                 MountPoint = mp
                             });
                             break; // Only need the first mounted partition

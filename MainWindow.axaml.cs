@@ -956,13 +956,23 @@ namespace xPlatformLukma
                     var ejectMedia = new EjectMediaMacOS();
                     mediaDrive = GetMediaDriveName(VideoPath);
                     Debug.Write(mediaDrive + Environment.NewLine);
+                    if (String.IsNullOrEmpty(mediaDrive))
+                    {
+                        string error = "media drive not found";
+                        ShowErrorMessage(error);
+                        return;
+                    }
 
+                    returnErrors = ejectMedia.EjectDisk(mediaDrive);
                 }
 
                 if (returnErrors != "")
                 {
                     ShowErrorMessage(returnErrors);
                 }
+
+
+
 
             }
         }
@@ -971,7 +981,17 @@ namespace xPlatformLukma
         {
             string returnString;
             //returnString = Directory.GetDirectoryRoot(VideoPath);
-            returnString = Path.GetPathRoot(VideoPath);
+            if (winPlatform)
+            {
+                returnString = Path.GetPathRoot(VideoPath);
+            }
+            else
+            {
+                string[] VideoPathArray= VideoPath.Split(Path.DirectorySeparatorChar);
+                string tmpString = Path.Combine(Path.GetPathRoot(VideoPath), VideoPathArray[1], VideoPathArray[2]);
+                returnString = tmpString;
+            }
+                
 
             return returnString;
         }
