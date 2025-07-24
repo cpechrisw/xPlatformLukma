@@ -39,13 +39,14 @@ namespace xPlatformLukma
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        //FileName = "/usr/sbin/diskutil",
-                        //Arguments = $"eject /dev/{diskId}",
-                        FileName = "/bin/bash",
-                        Arguments = $"-c \"diskutil eject /dev/{diskId}\"",
+                        FileName = "diskutil",
+                        Arguments = $"eject /dev/{diskId}",
+                        //FileName = "/bin/bash",
+                        //Arguments = $"-c \"diskutil eject /dev/{diskId}\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
-                        UseShellExecute = false
+                        UseShellExecute = false,
+                        CreateNoWindow = true
                     }
                 };
 
@@ -55,7 +56,7 @@ namespace xPlatformLukma
                 process.WaitForExit();
                 if (process.ExitCode != 0)
                 {
-                    Errors = error;
+                    Errors = error + " " + output;
                 }
 
                 return Errors;
