@@ -16,7 +16,6 @@ namespace xPlatformLukma
 
             List<UsbDrive> FullListDrives = ListUsbDrives();
 
-            List<string> driveNames = new();
             foreach (UsbDrive drive in FullListDrives) 
             {
                 Debug.WriteLine($"Debug: Media Drive: {drive.Identifier}");

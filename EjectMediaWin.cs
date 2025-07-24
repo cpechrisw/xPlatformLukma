@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace xPlatformLukma
 {
@@ -30,7 +31,7 @@ namespace xPlatformLukma
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile);
 
-        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern bool DeviceIoControl(
             SafeFileHandle hDevice,
             uint dwIoControlCode,
@@ -83,26 +84,25 @@ namespace xPlatformLukma
                     return msg;
                 }
 
-                uint bytesReturned;
-
+                
                 // Lock volume
-                if (!DeviceIoControl(handle, FSCTL_LOCK_VOLUME, IntPtr.Zero, 0, IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero))
+                if ( !TryLockVolume(handle) )
                 {
-                    string msg = "Failed to lock volume.";
+                    string msg = "Drive is still in Use. Failed to lock volume. Close drive folders before trying to eject";
                     Debug.WriteLine(msg);
                     return msg;
                 }
 
                 // Dismount volume
-                if (!DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, IntPtr.Zero, 0, IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero))
+                if (!DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, IntPtr.Zero, 0, IntPtr.Zero, 0, out _, IntPtr.Zero))
                 {
-                    string msg = "Failed to dismount volume.";
+                    string msg = "Drive is still in Use. Failed to dismount volume. Close drive folders before trying to eject";
                     Debug.WriteLine(msg);
                     return msg;
                 }
 
                 // Eject media
-                if (!DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, IntPtr.Zero, 0, IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero))
+                if (!DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, IntPtr.Zero, 0, IntPtr.Zero, 0, out _, IntPtr.Zero))
                 {
                     string msg = "Failed to eject media.";
                     Debug.WriteLine(msg);
@@ -113,6 +113,21 @@ namespace xPlatformLukma
                 return "";
             }
 
+        }
+
+
+        bool TryLockVolume(SafeFileHandle handle, int retries = 4)
+        {
+            for (int i = 0; i < retries; i++)
+            {
+                bool success = DeviceIoControl(handle, FSCTL_LOCK_VOLUME,
+                    IntPtr.Zero, 0, IntPtr.Zero, 0, out _, IntPtr.Zero);
+                if (success)
+                    return true;
+
+                Thread.Sleep(500); // Wait and retry
+            }
+            return false;
         }
     }
 

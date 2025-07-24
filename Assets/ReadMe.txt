@@ -47,7 +47,7 @@ Yeah! None currently
 
 
 ----Version Information----
-----1.9.0---- coming soon!
+----1.9.0----
 Added New Eject Media after save option
 
 ----1.8.3----

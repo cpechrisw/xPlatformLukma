@@ -916,7 +916,14 @@ namespace xPlatformLukma
 
             ListOfFiles ??= new ConcurrentQueue<VideoData>();
             ListOfFiles.Enqueue(BillvideoData);
-            
+
+            while (_mp.IsPlaying)
+            {
+                Debug.Write("Debug: waiting");
+                Thread.Sleep(500); // Pauses the current thread
+                
+            }
+
             EjectMediaAfterSave(currentVideoPath);
             
             ClearStuffAfterSave();
@@ -945,7 +952,7 @@ namespace xPlatformLukma
                         return;
                     }
                     char tmpChar = mediaDrive[0];
-                    Debug.Write("Debug: " + mediaDrive + Environment.NewLine + "Debug: " + tmpChar + Environment.NewLine);
+                    Debug.Write("Debug: mediaDrive " + mediaDrive + Environment.NewLine + "Debug: DriveLetter" + tmpChar + Environment.NewLine);
 
                     returnErrors = ejectMedia.EjectDisk(mediaDrive);
 
