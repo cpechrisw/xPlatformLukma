@@ -40,7 +40,7 @@
 			<Setter Property="Background" Value="#404040"/>
 			<Setter Property="Foreground" Value="White"/>
 		</Style>
-			
+		
 	</Window.Styles>
 	<!--#404040-->
 	
@@ -70,7 +70,8 @@
 					
 					<Slider Name="slider_VideoSlider" Value="0" 
 							HorizontalAlignment="Stretch" MinWidth="500" TickPlacement="BottomRight"
-							Margin="10,0,10,0"></Slider>
+							Margin="10,0,10,0" Background="White">
+					</Slider>
 
 					<Panel Name="pnl_videoTimeLabels">
 						<Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" Margin="10,0,25,5">

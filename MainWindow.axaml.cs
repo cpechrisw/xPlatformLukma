@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Concurrent;
 using LibVLCSharp.Avalonia;
+using System.Linq.Expressions;
 
 
 namespace xPlatformLukma
@@ -492,9 +493,10 @@ namespace xPlatformLukma
         {
             //combo_VideoQuality
             combo_VideoQuality.Items.Clear();
+            combo_VideoQuality.Items.Add("2.7k");
             combo_VideoQuality.Items.Add("1080");
             combo_VideoQuality.Items.Add("720");
-            combo_VideoQuality.SelectedIndex = 0;
+            combo_VideoQuality.SelectedIndex = 1;
         }
 
         private void PlayVideo(string file)
@@ -623,6 +625,7 @@ namespace xPlatformLukma
                 btn_VideoTrimReset.Click += TrimReset_Click;
             }
 
+            ckbox_EjectMedia.IsChecked = true;
 
 
             RandomQuote();
@@ -653,9 +656,10 @@ namespace xPlatformLukma
             combo_CatSubName.SelectedIndex = -1;
             txtb_Description.Clear();
             btn_Save.IsEnabled = false;
-            combo_VideoQuality.SelectedIndex = 0;
+            combo_VideoQuality.SelectedIndex = 1;
 
         }
+        
         private void ClearStuff()
         {
 
@@ -808,7 +812,7 @@ namespace xPlatformLukma
             }
             else
             {
-                videoQuality = "480";
+                videoQuality = "720";
             }
 
             string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
@@ -1087,8 +1091,14 @@ namespace xPlatformLukma
                     codec = "h264_videotoolbox"; // Use VideoToolbox for macOS
                 }
             }
-            
-            string ffmpegCommand = $"-s hd{videoDataConverting.Resolution} -c:v {codec} -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"";
+
+            //if we want to add 2.7k, this below command will have to be updated.
+            // commend would be -s 2704x1520
+            //Write a new function to return 2704x1520, hd1080, hd720
+            //GetLogoOverlayArgs will also have to be updated to support scaling the images for 2.7k
+            string videoScale = getVideoScaling(videoDataConverting.Resolution);
+
+            string ffmpegCommand = $"-s {videoScale} -c:v {codec} -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"";
             ffmpegArgs.Append(ffmpegCommand);
             
             if (!winPlatform)
@@ -1132,17 +1142,48 @@ namespace xPlatformLukma
             
         }
 
+        private string getVideoScaling(string resolution)
+        {
+            string sReturn = "hd1080";
+            switch (resolution)
+            {
+                case "2.7k":
+                    sReturn = "2704x1520";
+                    break;
+                case "1080":
+                    sReturn = "hd1080";
+                    break;
+                case "720":
+                    sReturn = "hd720";
+                    break;
+                default:
+                    sReturn = "hd1080";
+                    break;
+            }
+            return sReturn;
+        }
+
         private static string GetLogoOverlayArgs(VideoData videoData)
         {
-            //if the resolution is 720, scale the images
+            //The assumption here is that the logo's are meant for 1080 video
+            
+            //Default is expecting 1080 scaling
             string scalingOneLogo = "-filter_complex \"overlay=x=W/2-w/2-10:y=H-h-10\"";
             string scalingTwoLogos = "-filter_complex \"[0][1]overlay=x=W/2-w-10:y=H-h-10[v1];[v1][2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
 
-            if (videoData.Resolution != "1080")
+            
+            if (videoData.Resolution == "720" )
             {
-                //If the image needs to be scaled
+                //If the image needs to be scaled to 720
                 scalingOneLogo = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1],[0][p1]overlay=x=W/2-w/2-10:y=H-h-10\"";
                 scalingTwoLogos = "-filter_complex \"[1]scale=0.7*iw:0.7*ih[p1];[0][p1]overlay=x=W/2-w-10:y=H-h-10[v1];[2]scale=0.7*iw:0.7*ih[p2];[v1][p2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
+            }
+            
+            if (videoData.Resolution == "2.7k")
+            {
+                //If the image needs to be scaled to 2.7k
+                scalingOneLogo = "-filter_complex \"[1]scale=1.6*iw:1.6*ih[p1],[0][p1]overlay=x=W/2-w/2-10:y=H-h-10\"";
+                scalingTwoLogos = "-filter_complex \"[1]scale=1.6*iw:1.6*ih[p1];[0][p1]overlay=x=W/2-w-10:y=H-h-10[v1];[2]scale=1.6*iw:1.6*ih[p2];[v1][p2]overlay=W/2+10:y=H-h-10[v2]\" -map \"[v2]\" ";
             }
 
 
@@ -1417,7 +1458,7 @@ namespace xPlatformLukma
                 pnl_VideoQuality.IsVisible = true;
                 if (combo_CatSubName.SelectedItem.ToString() == "Rhythm")
                 {
-                    combo_VideoQuality.SelectedIndex=1;
+                    combo_VideoQuality.SelectedIndex=2;
                 }
             }
         }

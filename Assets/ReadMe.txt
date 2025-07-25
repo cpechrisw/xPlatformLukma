@@ -47,6 +47,9 @@ Yeah! None currently
 
 
 ----Version Information----
+----1.9.1----
+Added support for 2.7k video.
+
 ----1.9.0----
 Added New Eject Media after save option
 
