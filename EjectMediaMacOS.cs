@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace xPlatformLukma
@@ -31,40 +32,65 @@ namespace xPlatformLukma
                 Errors = "Unmount failed! Trying to unmount non-Media drive: " + diskId + " " + diskMountPoint;
                 return Errors;
             }
+            //run it multiple times and wait
+            Errors = ejectProcess(diskId, 4);
+            return Errors;
 
-            try
-            {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "diskutil",
-                        Arguments = $"eject /dev/{diskId}",
-                        //FileName = "/bin/bash",
-                        //Arguments = $"-c \"diskutil eject /dev/{diskId}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                if (process.ExitCode != 0)
-                {
-                    Errors = error + " " + output;
-                }
-
-                return Errors;
-            }
-            catch
-            {
-                return Errors;
-            }
         }
+
+
+        private string ejectProcess(string diskId, int retries)
+        {
+            string Errors = "";
+            
+            for(int i =0; i < retries; i++)
+            {
+                Debug.WriteLine("Debug: Ejection try: " + i);
+                try
+                {
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "diskutil",
+                            Arguments = $"eject /dev/{diskId}",
+                            //FileName = "/bin/bash",
+                            //Arguments = $"-c \"diskutil eject /dev/{diskId}\"",
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    if (process.ExitCode == 0)
+                    {
+                        Debug.WriteLine("Debug: Ejection sucessful");
+                        return Errors;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Debug: " + output);
+                        Debug.WriteLine("Debug: " + error);
+                        Errors = "Error: " + error + " " + output;
+                    }
+
+                }
+                catch
+                {
+                    return Errors;
+                }
+                Thread.Sleep(500); // Wait and retry
+
+            }
+            
+            return Errors;
+        }
+
 
         class UsbDrive
         {
