@@ -493,10 +493,10 @@ namespace xPlatformLukma
         {
             //combo_VideoQuality
             combo_VideoQuality.Items.Clear();
-            combo_VideoQuality.Items.Add("2.7k");
+            //combo_VideoQuality.Items.Add("2.7k");
             combo_VideoQuality.Items.Add("1080");
             combo_VideoQuality.Items.Add("720");
-            combo_VideoQuality.SelectedIndex = 1;
+            combo_VideoQuality.SelectedIndex = 0;
         }
 
         private void PlayVideo(string file)
@@ -656,7 +656,7 @@ namespace xPlatformLukma
             combo_CatSubName.SelectedIndex = -1;
             txtb_Description.Clear();
             btn_Save.IsEnabled = false;
-            combo_VideoQuality.SelectedIndex = 1;
+            combo_VideoQuality.SelectedIndex = 0;
 
         }
         
@@ -1076,29 +1076,15 @@ namespace xPlatformLukma
                 ffmpegArgs.Append($"-ss {videoDataConverting.ClipStartTime} -to {videoDataConverting.ClipEndTime} ");
             }
 
-            string iBitrate = GetBitRate();
-            string codec = "libx264";
-            if ( configInfo.useHardwareAccel == 1)
-            {
-                //Hardware acceleration encoding
-                if (winPlatform)
-                {
-                    codec = "h264_qsv";      //(intel acceleration)
-                    //fh264_nvenc;          // Use NVENC for Windows (Nvidia acceleration)
-                }
-                else
-                {
-                    codec = "h264_videotoolbox"; // Use VideoToolbox for macOS
-                }
-            }
+            string codeBitRate = GetCodecAndBitrate(configInfo.useHardwareAccel, configInfo.bitRate);
 
-            //if we want to add 2.7k, this below command will have to be updated.
+                        //if we want to add 2.7k, this below command will have to be updated.
             // commend would be -s 2704x1520
             //Write a new function to return 2704x1520, hd1080, hd720
             //GetLogoOverlayArgs will also have to be updated to support scaling the images for 2.7k
-            string videoScale = getVideoScaling(videoDataConverting.Resolution);
+            string videoScale = GetVideoScaling(videoDataConverting.Resolution);
 
-            string ffmpegCommand = $"-s {videoScale} -c:v {codec} -crf {iBitrate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"";
+            string ffmpegCommand = $"-s {videoScale} -c:v {codeBitRate} -metadata:s:v rotate=0 -an \"{videoDataConverting.UploadPath}\"";
             ffmpegArgs.Append(ffmpegCommand);
             
             if (!winPlatform)
@@ -1142,24 +1128,15 @@ namespace xPlatformLukma
             
         }
 
-        private string getVideoScaling(string resolution)
+        private string GetVideoScaling(string resolution)
         {
-            string sReturn = "hd1080";
-            switch (resolution)
+            string sReturn = resolution switch
             {
-                case "2.7k":
-                    sReturn = "2704x1520";
-                    break;
-                case "1080":
-                    sReturn = "hd1080";
-                    break;
-                case "720":
-                    sReturn = "hd720";
-                    break;
-                default:
-                    sReturn = "hd1080";
-                    break;
-            }
+                "2.7k" => "2704x1520",
+                "1080" => "hd1080",
+                "720" => "hd720",
+                _ => "hd1080",
+            };
             return sReturn;
         }
 
@@ -1202,17 +1179,51 @@ namespace xPlatformLukma
             return string.Empty;
         }
 
-        private string GetBitRate()
+        private string GetCodecAndBitrate(int useHardware,int bitRate) 
         {
-            string returnString = "23";
-            if(configInfo.bitRate == 1)
-            {
-                returnString = "20";
-            }
 
+            string codec;
+            string newBitRate;
+            if (useHardware == 1)
+            {
+                //Hardware acceleration encoding
+                if (winPlatform)
+                {
+                    codec = "h264_qsv";      //(intel acceleration) 
+                    //fh264_nvenc;          // Use NVENC for Windows (Nvidia acceleration)
+                    newBitRate = "-global_quality 25"; //Use values like 20–30
+                    if (bitRate == 1)
+                    {
+                        newBitRate = "-global_quality 22";
+                    }
+                }
+                else
+                {
+                    codec = "h264_videotoolbox"; // Use VideoToolbox for macOS
+                    newBitRate = "-q:v 25";
+                    if (bitRate == 1)
+                    {
+                        newBitRate = "-q:v 22";
+                    }
+                }
+            }
+            else
+            {
+                //We are using software encoding
+                codec = "libx264";
+                //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
+                newBitRate = "-crf 23";
+                if (bitRate == 1)
+                {
+                    newBitRate = "-crf 20";
+                }
+
+
+            }
+            string returnString = codec + " " + newBitRate;
             return returnString;
         }
-        
+
         private async void ShowPercentComplete(Process ffmpeg)
         {
             string duration = "";

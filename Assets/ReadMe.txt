@@ -48,7 +48,8 @@ Yeah! None currently
 
 ----Version Information----
 ----1.9.1----
-Added support for 2.7k video.
+Added support stucture for 2.7k video.
+Adjusted video quality based on hardware acceleration use
 
 ----1.9.0----
 Added New Eject Media after save option
