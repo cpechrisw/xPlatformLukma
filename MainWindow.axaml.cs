@@ -19,7 +19,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Concurrent;
 using LibVLCSharp.Avalonia;
-using System.Linq.Expressions;
 
 
 namespace xPlatformLukma
@@ -981,10 +980,10 @@ namespace xPlatformLukma
                 {
                     ShowErrorMessage(returnErrors);
                 }
-
-
-
-
+                else
+                {
+                    ShowAutoCloseMessageWindow("Media has been ejected",2);
+                }
             }
         }
         
@@ -1191,19 +1190,19 @@ namespace xPlatformLukma
                 {
                     codec = "h264_qsv";      //(intel acceleration) 
                     //fh264_nvenc;          // Use NVENC for Windows (Nvidia acceleration)
-                    newBitRate = "-global_quality 25"; //Use values like 20–30
+                    newBitRate = "-global_quality 27"; //Use values like 20–30
                     if (bitRate == 1)
                     {
-                        newBitRate = "-global_quality 22";
+                        newBitRate = "-global_quality 23";
                     }
                 }
                 else
                 {
                     codec = "h264_videotoolbox"; // Use VideoToolbox for macOS
-                    newBitRate = "-q:v 25";
+                    newBitRate = "-q:v 27";
                     if (bitRate == 1)
                     {
-                        newBitRate = "-q:v 22";
+                        newBitRate = "-q:v 23";
                     }
                 }
             }
@@ -1212,7 +1211,7 @@ namespace xPlatformLukma
                 //We are using software encoding
                 codec = "libx264";
                 //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
-                newBitRate = "-crf 23";
+                newBitRate = "-crf 24";
                 if (bitRate == 1)
                 {
                     newBitRate = "-crf 20";
@@ -1505,6 +1504,33 @@ namespace xPlatformLukma
                 CloseApp();
             }
 
+        }
+
+        //message and time in seconds
+        public async void ShowAutoCloseMessageWindow(string msg, int time)
+        {
+            var mainWindow = this;
+
+            var tempWindow = new Window
+            {
+                Width = 300,
+                Height = 100,
+                Content = new TextBlock
+                {
+                    Text = msg,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                },
+                Icon = this.Icon,
+                CanResize = false,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Topmost = true
+            };
+            int seconds = time * 1000;
+
+            tempWindow.Show();
+            await Task.Delay(seconds);
+            tempWindow.Close();
         }
 
         private void SL_TimeChanged(object sender, RangeBaseValueChangedEventArgs e)

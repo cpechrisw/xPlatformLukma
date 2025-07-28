@@ -50,6 +50,7 @@ Yeah! None currently
 ----1.9.1----
 Added support stucture for 2.7k video.
 Adjusted video quality based on hardware acceleration use
+Added eject message when it successful
 
 ----1.9.0----
 Added New Eject Media after save option
