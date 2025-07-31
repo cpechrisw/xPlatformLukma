@@ -942,7 +942,7 @@ namespace xPlatformLukma
             if(ckbox_EjectMedia.IsChecked == true)
             {
                 string mediaDrive;
-                string returnErrors = "";
+                string returnErrors;
                 //---------For Windows---------
                 if (winPlatform)
                 {
@@ -1180,21 +1180,57 @@ namespace xPlatformLukma
 
         private string GetCodecAndBitrate(int useHardware,int bitRate) 
         {
-
             string codec;
             string newBitRate;
+            
+            //use software conversion by default
+            codec = "libx264";
+            
+            newBitRate = "-crf 24";     //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
+            if (bitRate == 1)
+            {
+                newBitRate = "-crf 20";
+            }
+
             if (useHardware == 1)
             {
                 //Hardware acceleration encoding
                 if (winPlatform)
                 {
-                    codec = "h264_qsv";      //(intel acceleration) 
-                    //fh264_nvenc;          // Use NVENC for Windows (Nvidia acceleration)
-                    newBitRate = "-global_quality 27"; //Use values like 20–30
-                    if (bitRate == 1)
+                    //-------Windows only
+                    if( IsIntelGPUPresent() )
                     {
-                        newBitRate = "-global_quality 23";
+                        codec = "h264_qsv";      //(intel acceleration) 
+                        newBitRate = "-global_quality 27"; //Use values like 20–30
+                        if (bitRate == 1)
+                        {
+                            newBitRate = "-global_quality 23";
+                        }
+                        Debug.WriteLine("Intel Codec and Bitrate: " + codec + " " + newBitRate);
                     }
+                    if( IsAmdGPUPresent() )
+                    {
+                        //use h264_amf
+                        codec = "h264_amf";     //AMD
+                        newBitRate = "-q 27"; //Use values like 20–30
+                        if (bitRate == 1)
+                        {
+                            newBitRate = "-q 23";
+                        }
+                        Debug.WriteLine("AMD Codec and Bitrate: " + codec + " " + newBitRate);
+                    }
+                    if( IsNvidiaGPUPresent())
+                    {
+                        //Nvidia
+                        codec = "h264_nvenc";
+                        newBitRate = "-cq 25"; //Use values like 20–30
+                        if (bitRate == 1)
+                        {
+                            newBitRate = "-cq 22";
+                        }
+                        Debug.WriteLine("Nvidia Codec and Bitrate: " + codec + " " + newBitRate);
+                    }
+
                 }
                 else
                 {
@@ -1204,24 +1240,59 @@ namespace xPlatformLukma
                     {
                         newBitRate = "-q:v 23";
                     }
+                    Debug.WriteLine("Mac Codec and Bitrate: " + codec + " " + newBitRate);
                 }
-            }
-            else
-            {
-                //We are using software encoding
-                codec = "libx264";
-                //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
-                newBitRate = "-crf 24";
-                if (bitRate == 1)
-                {
-                    newBitRate = "-crf 20";
-                }
-
-
             }
             string returnString = codec + " " + newBitRate;
             return returnString;
         }
+        
+        private bool IsIntelGPUPresent()
+        {
+            return SystemInfoHasGPUName("Intel");
+        }
+
+        private bool IsNvidiaGPUPresent()
+        {
+            return SystemInfoHasGPUName("NVIDIA");
+        }
+
+        private bool IsAmdGPUPresent()
+        {
+            return SystemInfoHasGPUName("AMD") || SystemInfoHasGPUName("Radeon");
+        }
+
+        private bool SystemInfoHasGPUName(string keyword)
+        {
+            if (winPlatform)
+            {
+                #pragma warning disable CA1416 // Validate platform compatibility
+                try
+                {
+
+                    using var searcher = new System.Management.ManagementObjectSearcher("select * from Win32_VideoController");
+
+                    foreach (var obj in searcher.Get())
+                    {
+                        string name = obj["Name"]?.ToString() ?? "";
+                        if (name.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    }
+                }
+                catch
+                {
+                    // WMI may not be available or fails
+                }
+                return false;
+                #pragma warning restore CA1416 // Validate platform compatibility
+            }
+            else
+            {
+                return false;
+            }
+            
+        }
+
 
         private async void ShowPercentComplete(Process ffmpeg)
         {
@@ -1509,8 +1580,7 @@ namespace xPlatformLukma
         //message and time in seconds
         public async void ShowAutoCloseMessageWindow(string msg, int time)
         {
-            var mainWindow = this;
-
+            
             var tempWindow = new Window
             {
                 Width = 300,

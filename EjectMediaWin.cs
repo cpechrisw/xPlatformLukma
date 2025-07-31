@@ -114,8 +114,7 @@ namespace xPlatformLukma
             }
 
         }
-
-
+        
         bool TryLockVolume(SafeFileHandle handle, int retries = 4)
         {
             for (int i = 0; i < retries; i++)

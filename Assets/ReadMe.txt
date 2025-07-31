@@ -47,6 +47,9 @@ Yeah! None currently
 
 
 ----Version Information----
+----1.9.2----
+Added support for various graphics cards for hardware acceleration use
+
 ----1.9.1----
 Added support stucture for 2.7k video.
 Adjusted video quality based on hardware acceleration use
