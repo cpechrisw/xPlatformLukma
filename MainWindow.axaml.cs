@@ -1093,7 +1093,7 @@ namespace xPlatformLukma
             //End of ffmpeg arguments creation
 
             //----DEBUG----//
-            //Debug.WriteLine("From ffmpeg: " + ffmpegArgs);
+            Debug.WriteLine("From ffmpeg: " + ffmpegArgs);
 
             Process ffmpeg = new()
             {
@@ -1186,7 +1186,7 @@ namespace xPlatformLukma
             //use software conversion by default
             codec = "libx264";
             
-            newBitRate = "-crf 24";     //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
+            newBitRate = "-crf 23";     //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
             if (bitRate == 1)
             {
                 newBitRate = "-crf 20";
@@ -1201,10 +1201,10 @@ namespace xPlatformLukma
                     if( IsIntelGPUPresent() )
                     {
                         codec = "h264_qsv";      //(intel acceleration) 
-                        newBitRate = "-global_quality 27"; //Use values like 20–30
-                        if (bitRate == 1)
+                        newBitRate = "-global_quality 24"; //Use values like 20ï¿½30
+                        if (bitRate == 1)               //Bitrate 1 is for higher quality
                         {
-                            newBitRate = "-global_quality 23";
+                            newBitRate = "-global_quality 20";
                         }
                         Debug.WriteLine("Intel Codec and Bitrate: " + codec + " " + newBitRate);
                     }
@@ -1212,10 +1212,10 @@ namespace xPlatformLukma
                     {
                         //use h264_amf
                         codec = "h264_amf";     //AMD
-                        newBitRate = "-q 27"; //Use values like 20–30
+                        newBitRate = "-q 24"; //Use values like 20ï¿½30
                         if (bitRate == 1)
                         {
-                            newBitRate = "-q 23";
+                            newBitRate = "-q 20";
                         }
                         Debug.WriteLine("AMD Codec and Bitrate: " + codec + " " + newBitRate);
                     }
@@ -1223,10 +1223,10 @@ namespace xPlatformLukma
                     {
                         //Nvidia
                         codec = "h264_nvenc";
-                        newBitRate = "-cq 25"; //Use values like 20–30
+                        newBitRate = "-cq 24"; //Use values like 20ï¿½30
                         if (bitRate == 1)
                         {
-                            newBitRate = "-cq 22";
+                            newBitRate = "-cq 20";
                         }
                         Debug.WriteLine("Nvidia Codec and Bitrate: " + codec + " " + newBitRate);
                     }
@@ -1235,10 +1235,10 @@ namespace xPlatformLukma
                 else
                 {
                     codec = "h264_videotoolbox"; // Use VideoToolbox for macOS
-                    newBitRate = "-q:v 27";
+                    newBitRate = "-b:v 4M -maxrate 4M -bufsize 8M";
                     if (bitRate == 1)
                     {
-                        newBitRate = "-q:v 23";
+                        newBitRate = "-b:v 7M -maxrate 7M -bufsize 14M";
                     }
                     Debug.WriteLine("Mac Codec and Bitrate: " + codec + " " + newBitRate);
                 }

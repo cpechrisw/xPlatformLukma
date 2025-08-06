@@ -30,10 +30,11 @@ Categories and Names dialog – ‘Fun Jumper’ category is the only protected 
 
 Logo sizes are based on original video size. This is only noticeable if you change your camera settings or when multiple people are filming in different resolutions
 Logos dialog – This dialog allows you to change the standard logo on every video or add a secondary logo to a single team, private or regular team, or all other categories. New logos should not be any larger that 200x200 pixels in order to look correct on a 1080p video. The Current logo picture will show you what logo is being applied to whatever is selected on the left side. New logo gives you a preview of a logo that is selected after a search.
-	‘Primary’ – the primary logo that is used for all videos. One must exist otherwise the video will not be converted.
+	‘Primary’ – the primary logo that is used for all videos.
 	‘Category’ – All other categories except ‘Teams’ and ‘Private – Teams’
 	‘Teams’ – applies to a single team
 	‘Private – Teams’ - applies to a single team
+    'Events' - Creates a similar structure to teams, logos only apply to a single Event
 
 	How to applying a new logo – On the left hand side, select what you want the new logo to apply to. Hit search, find and select the png file. It will show up in the New logo preview section. Hit apply
 
