@@ -31,11 +31,12 @@
 			   />
 		<Grid ColumnDefinitions="Auto,Auto,Auto,Auto" >
 			<!--Controls and pickers-->
-			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
+			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,-5,10,0">
 				<TextBlock Text="Applies Logo" HorizontalAlignment="Center"/>
 				<TextBlock Text="Edits To:" HorizontalAlignment="Center"/>
 				<RadioButton GroupName="rbGroup" Name="rb_Primary" Content="Primary" IsChecked="False"/>
 				<RadioButton GroupName="rbGroup" Name="rb_Category" Content="Category"/>
+				<RadioButton GroupName="rbGroup" Name="rb_Events" Content="Events"/>
 				<RadioButton GroupName="rbGroup" Name="rb_Teams" Content="Teams"/>
 				<RadioButton GroupName="rbGroup" Name="rb_TeamsPrivate" Content="Teams - Private"/>
 				<ComboBox Name="comboBox_Name" Width="150" IsEnabled="False"/>
@@ -80,7 +81,9 @@
 			
 			
 		</Grid>
-		<TextBlock Name="lbl_additionalInfo" TextWrapping="WrapWithOverflow" Text="Applies to all Categories Except teams"/>
+		<TextBlock Name="lbl_additionalInfo" TextWrapping="WrapWithOverflow" 
+				   Text="Applies to all categories except teams and Events"
+				   Margin="0,10,00,0"/>
 		<Button Name="btn_Close" Content="Close" Margin="125,0,0,0"/>
 				
 		

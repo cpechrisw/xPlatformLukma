@@ -48,6 +48,12 @@ Yeah! None currently
 
 
 ----Version Information----
+----1.9.4----
+Added support for Events in the Logo dialog
+
+----1.9.3----
+Improvements to GUI responsiveness
+
 ----1.9.2----
 Added support for various graphics cards for hardware acceleration use
 

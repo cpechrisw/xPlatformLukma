@@ -296,7 +296,7 @@ public partial class CategoriesWindow : Window
     private void RemoveCatButton_Click(object sender, EventArgs e)
     {
         string localCategoryText = lsbox_Categories.SelectedItem?.ToString();
-        if (localCategoryText != "Teams" && localCategoryText != "Teams - Private" && localCategoryText != "Fun Jumpers")
+        if (localCategoryText != "Teams" && localCategoryText != "Teams - Private" && localCategoryText != "Fun Jumpers" && localCategoryText != "Events")
         {
             
             string specificCatFilePath = Path.Combine(myConfigInfo.configDir, localCategoryText + ".txt");
@@ -316,7 +316,7 @@ public partial class CategoriesWindow : Window
         else
         {
 
-            MessageBoxManager.GetMessageBoxStandard("Warning", "Cannot remove Fun Jumpers or Teams categories",
+            MessageBoxManager.GetMessageBoxStandard("Warning", "That category is protected, it cannot be removed",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,MsBox.Avalonia.Enums.Icon.Warning, 
                 WindowStartupLocation.CenterOwner).ShowWindowDialogAsync(this);
         }

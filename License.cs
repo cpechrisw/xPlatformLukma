@@ -80,7 +80,7 @@ namespace xPlatformLukma
 
         private string EncryptLic(int year)
         {
-            ExpirationDate = new DateTime(year, 12, 1);
+            ExpirationDate = new DateTime(year, 12, 31);
             string returnString = EncryptString(AESKey, ExpirationDate.ToString());
 
             return returnString;

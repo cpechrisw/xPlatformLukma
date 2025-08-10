@@ -16,7 +16,7 @@ public partial class LogoWindow : Window
     readonly SortedDictionary<string, string[]> myCategoryDic;
     ConfigStruct myConfigInfo;
     string initLogoDirectory;
-    Utils newUtil;
+    //Utils newUtil;
 
 
     public LogoWindow()
@@ -30,7 +30,7 @@ public partial class LogoWindow : Window
         myCategoryDic = passCategoryDic;
         myConfigInfo = passConfigInfo;
         //string logoConfigFile = System.IO.Path.Combine(myConfigInfo.configDir, myConfigInfo.customLogoFile);
-        newUtil = new Utils();
+        //newUtil = new Utils();
         //newUtil.ReadCustomLogos(myConfigInfo);
 
         btn_Search.IsEnabled = false;
@@ -104,8 +104,9 @@ public partial class LogoWindow : Window
 
         comboBox_Name.SelectionChanged += NameComboBox_SelectedIndexChange;
         rb_Primary.IsCheckedChanged += RBPrimaryLogo_CheckedChanged;
-        rb_TeamsPrivate.IsCheckedChanged += RBTeam_CheckedChanged;
-        rb_Teams.IsCheckedChanged += RBTeam_CheckedChanged;
+        rb_Events.IsCheckedChanged += RBTeamEvents_CheckedChanged;
+        rb_TeamsPrivate.IsCheckedChanged += RBTeamEvents_CheckedChanged;
+        rb_Teams.IsCheckedChanged += RBTeamEvents_CheckedChanged;
         rb_Category.IsCheckedChanged += RBCategory_CheckedChanged;
        
 
@@ -135,7 +136,7 @@ public partial class LogoWindow : Window
         {
             string sComboName = comboBox_Name.SelectedValue.ToString();
             ClearCurrentLogoBox();
-            lbl_additionalInfo.Text = "Applies to only individual teams";
+            lbl_additionalInfo.Text = "Applies to only individual teams or events";
             if (myConfigInfo.customLogos.ContainsKey(sComboName))
             {
                 string curFile = myConfigInfo.customLogos[sComboName].ToString();
@@ -146,14 +147,13 @@ public partial class LogoWindow : Window
 
                 }
             }
-            Toggle_SearchButton(true, new EventArgs());
-            //Enable_SearchButton(this, new EventArgs());
+            Toggle_SearchButton(true);
             Toggle_ApplyButton(this, new EventArgs());
             Toggle_RemoveButton(this, new EventArgs());
         }
         else
         {
-            Toggle_SearchButton(false, new EventArgs());
+            Toggle_SearchButton(false);
         }
 
     }
@@ -166,7 +166,7 @@ public partial class LogoWindow : Window
             ClearCurrentLogoBox();
             ClearNewLogoBox();
             Toggle_ApplyButton(this, new EventArgs());
-            lbl_additionalInfo.Text = "Applies to all Categories except Teams/Private Teams";
+            lbl_additionalInfo.Text = "Applies to all Categories except teams and events";
             string catName = "Category";
             comboBox_Name.Items.Clear();
             comboBox_Name.IsEnabled = false;
@@ -175,34 +175,40 @@ public partial class LogoWindow : Window
                 string tmpString = myConfigInfo.customLogos[catName];
                 SetImage(image_CurrentLogo, tmpString);
             }
-            Toggle_SearchButton(true, new EventArgs());
-            //Enable_SearchButton(this, new EventArgs());
+            Toggle_SearchButton(true);
             Toggle_ApplyButton(this, new EventArgs());
             Toggle_RemoveButton(this, new EventArgs());
 
         }
 
     }
-    private void RBTeam_CheckedChanged(object sender, EventArgs e)
+    private void RBTeamEvents_CheckedChanged(object sender, EventArgs e)
     {
 
         comboBox_Name.SelectedValue = null;
         
-        if (rb_Teams.IsChecked == true || rb_TeamsPrivate.IsChecked == true)
+        
+        
+        if (rb_Teams.IsChecked == true || rb_TeamsPrivate.IsChecked == true || rb_Events.IsChecked == true)
         {
-            comboBox_Name.IsEnabled = true;
+            //Change this to a switch statement
             string comboName = "Teams";
-            ClearCurrentLogoBox();
-            ClearNewLogoBox();
-            Toggle_ApplyButton(this, new EventArgs());
-
             if (rb_TeamsPrivate.IsChecked == true)
             {
                 comboName = "Teams - Private";
             }
-            lbl_additionalInfo.Text = "Applies to only individual teams";
+            else if(rb_Events.IsChecked == true)
+            {
+                comboName = "Events";
+            }
+            comboBox_Name.IsEnabled = true;
+            
+            ClearCurrentLogoBox();
+            ClearNewLogoBox();
+            Toggle_ApplyButton(this, new EventArgs());
+            lbl_additionalInfo.Text = "Applies to only individual teams or events";
             Load_ComboBox(comboName);
-            Toggle_SearchButton(false, new EventArgs());
+            Toggle_SearchButton(false);
             //Enable_SearchButton(this, new EventArgs());
 
         }
@@ -224,7 +230,7 @@ public partial class LogoWindow : Window
             ClearNewLogoBox();
             lbl_additionalInfo.Text = "Applies to ALL videos";
             
-            Toggle_SearchButton(true, new EventArgs());
+            Toggle_SearchButton(true);
             //Toggle_ApplyButton(this, new EventArgs());
             //Toggle_RemoveButton(this, new EventArgs());
 
@@ -283,7 +289,7 @@ public partial class LogoWindow : Window
     }
 
 
-    private void Toggle_SearchButton(bool bValue, EventArgs e)
+    private void Toggle_SearchButton(bool bValue)
     {
         btn_Search.IsEnabled = bValue;
     }
@@ -371,7 +377,7 @@ public partial class LogoWindow : Window
                 sComboName = "Category";
                 CheckAndAddNewLogo(sComboName, imageLocation);
             }
-            else if ((bool)rb_TeamsPrivate.IsChecked || (bool)rb_Teams.IsChecked)
+            else if ((bool)rb_TeamsPrivate.IsChecked || (bool)rb_Teams.IsChecked || (bool)rb_Events.IsChecked)
             {
                 sComboName = comboBox_Name.SelectedValue.ToString();
                 if (sComboName.Length > 0 && imageLocation != null)
@@ -379,6 +385,7 @@ public partial class LogoWindow : Window
                     CheckAndAddNewLogo(sComboName, imageLocation);
                 }
             }
+
             lbl_additionalInfo.Text = imageLocation;
             SetImage(image_CurrentLogo, imageLocation);
             ClearNewLogoBox();
@@ -389,7 +396,7 @@ public partial class LogoWindow : Window
         {
             Toggle_ApplyButton(this, new EventArgs());
             Toggle_RemoveButton(this, new EventArgs());
-            string tmpMessage = "File not found";
+            string tmpMessage = "Image file not found: " + imageLocation;
             MessageBoxManager.GetMessageBoxStandard("Warning", tmpMessage,
                     MsBox.Avalonia.Enums.ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Warning,
                     WindowStartupLocation.CenterOwner).ShowWindowDialogAsync(this);
@@ -426,7 +433,7 @@ public partial class LogoWindow : Window
             Toggle_RemoveButton(this, new EventArgs());
 
         }
-        else if ((bool)rb_TeamsPrivate.IsChecked || (bool)rb_Teams.IsChecked)
+        else if ((bool)rb_TeamsPrivate.IsChecked || (bool)rb_Teams.IsChecked || (bool)rb_Events.IsChecked)
         {
             sComboName = comboBox_Name.SelectedValue.ToString();
             if (sComboName.Length > 0 && image_CurrentLogo.Source != null)
@@ -437,7 +444,7 @@ public partial class LogoWindow : Window
                     Utils.ReWriteCustomLogosFile(myConfigInfo);
                 }
                 ClearCurrentLogoBox();
-                lbl_additionalInfo.Text = "Applies to only individual teams";
+                lbl_additionalInfo.Text = "Applies to only individual teams or events";
                 Toggle_ApplyButton(this, new EventArgs());
                 Toggle_RemoveButton(this, new EventArgs());
             }

@@ -711,7 +711,8 @@ namespace xPlatformLukma
                 string tmpPath = Path.GetFileName(path);
                 path = tmpPath;
                             }
-            lbl_VideoFile.Text = path;
+            Dispatcher.UIThread.Post(() => lbl_VideoFile.Text = path, DispatcherPriority.Normal);
+            //lbl_VideoFile.Text = path;
 
         }
 
@@ -729,15 +730,15 @@ namespace xPlatformLukma
         //
         //
         //
-        public string GetSecondaryLogo()
+        public string GetSecondaryLogo(string catCombo, string nameCombo)
         {
             
             string returnPath = "";
-            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
+            //string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
             
             if (catCombo == "Teams" || catCombo == "Teams - Private" || catCombo == "Events")
             {
-                string nameCombo = combo_CatSubName.SelectedValue.ToString();
+                //string nameCombo = combo_CatSubName.SelectedValue.ToString();
                 if (configInfo.customLogos.ContainsKey(nameCombo))
                 {
                     returnPath = configInfo.customLogos[nameCombo];
@@ -758,7 +759,7 @@ namespace xPlatformLukma
                 //Throw error message
                 string msg = "Secondary logo was not found: " + returnPath;
                 //Debug.Write(msg);
-                ShowErrorMessage(msg);
+                Dispatcher.UIThread.Post(() => ShowErrorMessage(msg), DispatcherPriority.Normal);
                 returnPath = "";
             }
             return returnPath;
@@ -778,13 +779,13 @@ namespace xPlatformLukma
                 //Throw error message
                 string msg = "Primary Logo was not found: " + returnPath;
                 //Debug.Write(msg);
-                ShowErrorMessage(msg);
+                Dispatcher.UIThread.Post(() => ShowErrorMessage(msg), DispatcherPriority.Normal);
                 returnPath = "";
             }
             return returnPath;
         }
-
-        private void SaveButtonHelper()
+                       
+        private void SaveButtonHelper(DateTime pickedDateTime, string videoQuality, string catCombo, string nameCombo, string textDescription, bool ejectMediaBool)
         {
             //Create variables to be used when creating unique filenames later 
             string sourcePath;
@@ -792,7 +793,7 @@ namespace xPlatformLukma
             string uploadPath;
             string uploadPathFile;  //upload path and file
 
-            DateTime pickedDateTime = (DateTime)date_DatePicker1.SelectedDate;
+            //DateTime pickedDateTime = (DateTime)date_DatePicker1.SelectedDate;
 
             string yearFolder = pickedDateTime.Year.ToString();
             string monthFolder = pickedDateTime.Month.ToString();
@@ -803,36 +804,17 @@ namespace xPlatformLukma
             {
                 datePath = datePath.Replace('\\', '/');
             }
-
-            string videoQuality;
-            if (combo_VideoQuality.IsEffectivelyVisible)
-            {
-                videoQuality = combo_VideoQuality.SelectedValue.ToString();
-            }
-            else
-            {
-                videoQuality = "720";
-            }
-
-            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
-            string nameCombo = "";
-
-            if (sPanel_CatSubName.IsVisible)
-            {
-                nameCombo = combo_CatSubName.SelectedValue.ToString();
-            }
             
-            SetPreserveCategory(catCombo, nameCombo);
 
-
-            string fileName = CreateFileName();          //append unique identifier, resolution
+            string fileName = CreateFileName(catCombo, nameCombo, textDescription);          //append unique identifier, resolution
             string extension = Path.GetExtension(currentVideoPath);
             string originalFile = fileName + extension;
             fileName += "_" + videoQuality + extension;
 
+            SetPreserveCategory(catCombo, nameCombo);
             string tmpStartSourcePath;
             string tmpStartUploadPath;
-
+            
             if (catCombo == "Teams" || catCombo == "Events")    //structure for teams is team-folder/year/month/date/draw-resolution.mp4 
             {
                 tmpStartSourcePath = Path.Combine(configInfo.unconvertedVideoDir, nameCombo);     //Create teamPath
@@ -882,7 +864,7 @@ namespace xPlatformLukma
             try
             {
                 //FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.OnlyErrorDialogs);
-                FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"");
+                FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
                 long currentVideoPosition = _mp.Time;
                 ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile, currentVideoPosition, false));
                 
@@ -892,12 +874,12 @@ namespace xPlatformLukma
                 string tmpString = "Error copying over file. " + ex.Message;
                 Debug.Write(tmpString + Environment.NewLine);
                 Console.Write(tmpString + Environment.NewLine);
-                ShowErrorMessage(tmpString);
+                Dispatcher.UIThread.Post(() => ShowErrorMessage(tmpString), DispatcherPriority.Normal);
                 return;
                 
             }       
 
-            string secondaryLogoPath = GetSecondaryLogo();
+            string secondaryLogoPath = GetSecondaryLogo(catCombo, nameCombo);
             string primaryLogoPath = GetPrimaryLogo();
             //Added getting primary logo
 
@@ -927,9 +909,10 @@ namespace xPlatformLukma
                 
             }
 
-            EjectMediaAfterSave(currentVideoPath);
+            EjectMediaAfterSave(currentVideoPath,ejectMediaBool);
             
-            ClearStuffAfterSave();
+            Dispatcher.UIThread.Post(() => ClearStuffAfterSave(), DispatcherPriority.Normal);
+            //ClearStuffAfterSave();
             if (!FlagConverting)
             {
                 FlagConverting = true;
@@ -937,9 +920,9 @@ namespace xPlatformLukma
             }
         }
 
-        private void EjectMediaAfterSave(string VideoPath)
+        private void EjectMediaAfterSave(string VideoPath, bool ejectMediaBool)
         {
-            if(ckbox_EjectMedia.IsChecked == true)
+            if(ejectMediaBool == true)
             {
                 string mediaDrive;
                 string returnErrors;
@@ -951,7 +934,7 @@ namespace xPlatformLukma
                     if(String.IsNullOrEmpty(mediaDrive))
                     {
                         string error = "media drive not found";
-                        ShowErrorMessage(error);
+                        Dispatcher.UIThread.Post(() => ShowErrorMessage(error), DispatcherPriority.Normal);
                         return;
                     }
                     char tmpChar = mediaDrive[0];
@@ -969,7 +952,7 @@ namespace xPlatformLukma
                     if (String.IsNullOrEmpty(mediaDrive))
                     {
                         string error = "media drive not found";
-                        ShowErrorMessage(error);
+                        Dispatcher.UIThread.Post(() => ShowErrorMessage(error), DispatcherPriority.Normal);
                         return;
                     }
 
@@ -978,11 +961,11 @@ namespace xPlatformLukma
 
                 if (returnErrors != "")
                 {
-                    ShowErrorMessage(returnErrors);
+                    Dispatcher.UIThread.Post(() => ShowErrorMessage(returnErrors), DispatcherPriority.Normal);
                 }
                 else
                 {
-                    ShowAutoCloseMessageWindow("Media has been ejected",2);
+                    Dispatcher.UIThread.Post(() => ShowAutoCloseMessageWindow("Media has been ejected", 2), DispatcherPriority.Normal);
                 }
             }
         }
@@ -1053,14 +1036,14 @@ namespace xPlatformLukma
                 return;
             }  //exit if list is empty
             
-            
-            if (!File.Exists(configInfo.ffmpegLocation))
-            {
-                ShowErrorMessage("ffmpeg could not be found. Your install is corrupted");
-                ListOfFiles.Clear();
+            ////--------------This is checked during load, so it should not be needed here
+            //if (!File.Exists(configInfo.ffmpegLocation))
+            //{
+            //    ShowErrorMessage("ffmpeg could not be found. Your install is corrupted");
+            //    ListOfFiles.Clear();
 
-                return;
-            }
+            //    return;
+            //}
                         
 
             //   Building the argument list
@@ -1078,8 +1061,8 @@ namespace xPlatformLukma
             string codeBitRate = GetCodecAndBitrate(configInfo.useHardwareAccel, configInfo.bitRate);
 
                         //if we want to add 2.7k, this below command will have to be updated.
-            // commend would be -s 2704x1520
-            //Write a new function to return 2704x1520, hd1080, hd720
+                        // commend would be -s 2704x1520
+            
             //GetLogoOverlayArgs will also have to be updated to support scaling the images for 2.7k
             string videoScale = GetVideoScaling(videoDataConverting.Resolution);
 
@@ -1185,11 +1168,10 @@ namespace xPlatformLukma
             
             //use software conversion by default
             codec = "libx264";
-            
-            newBitRate = "-crf 23";     //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
+            newBitRate = "-crf 23 -threads 0";     //for crf: Valid range is 0 to 63, higher numbers indicating lower quality and smaller output size. Only used if set; by default only the bitrate target is used.
             if (bitRate == 1)
             {
-                newBitRate = "-crf 20";
+                newBitRate = "-crf 20 -threads 0";
             }
 
             if (useHardware == 1)
@@ -1365,26 +1347,21 @@ namespace xPlatformLukma
         //
         //Creates the filname for the video
         //
-        public string CreateFileName()
+        public string CreateFileName(string catCombo, string nameCombo, string textDescription)
         {
             string newFileName;
-            string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
             string dirtyFileName = "";
             if (catCombo == "Teams" || catCombo == "Teams - Private" || catCombo == "Events")  //shows dropbox for draw
             {
-                dirtyFileName += txtb_Description.Text;
+                dirtyFileName += textDescription;
             }
             else
             {
-                if (sPanel_CatSubName.IsVisible)
+                if (nameCombo != "")
                 {
-                    string nameCombo = combo_CatSubName.SelectedValue.ToString();
-                    if (nameCombo != "")
-                    {
-                        dirtyFileName += nameCombo + " - ";   //starts filename with name from combo_CatSubName.Text so nameTheFile adds the draw after the person or team named there
-                    }
+                    dirtyFileName += nameCombo + " - ";   //starts filename with name from combo_CatSubName.Text so nameTheFile adds the draw after the person or team named there
                 }
-                dirtyFileName += txtb_Description.Text;
+                dirtyFileName += textDescription;
             }
             newFileName = Regex.Replace(dirtyFileName, @"([^a-zA-Z0-9_ ]|^\s)", "-");
 
@@ -1537,10 +1514,6 @@ namespace xPlatformLukma
             {
                 txtb_Description.IsEnabled = true;
                 pnl_VideoQuality.IsVisible = true;
-                if (combo_CatSubName.SelectedItem.ToString() == "Rhythm")
-                {
-                    combo_VideoQuality.SelectedIndex=2;
-                }
             }
         }
 
@@ -1726,11 +1699,39 @@ namespace xPlatformLukma
             ClearStuff();
         }
         
-        private void SaveButton_Click(object sender, EventArgs e)
+        private async void SaveButton_Click(object sender, EventArgs e)
         {
+            
             if (IsTrimValid())
             {
-                SaveButtonHelper();
+                //Gather info from UI thread, pass it into save helper.
+                
+                DateTime pickedDateTime = (DateTime)date_DatePicker1.SelectedDate;
+                string videoQuality;
+                if (combo_VideoQuality.IsEffectivelyVisible)
+                {
+                    videoQuality = combo_VideoQuality.SelectedValue.ToString();
+                }
+                else
+                {
+                    videoQuality = "720";
+                }
+
+                string catCombo = combo_CategoryComboBox.SelectedValue.ToString();
+                string nameCombo = "";
+
+                if (sPanel_CatSubName.IsVisible)
+                {
+                    nameCombo = combo_CatSubName.SelectedValue.ToString();
+                }
+                string textDescription = txtb_Description.Text;
+                bool ejectMedia = (bool)ckbox_EjectMedia.IsChecked;
+
+                await Task.Run(() =>
+                {
+                    // e.g., writing settings to disk, starting ffmpeg, etc.
+                    SaveButtonHelper(pickedDateTime, videoQuality, catCombo, nameCombo, textDescription, ejectMedia);
+                });
             }
             else
             {
