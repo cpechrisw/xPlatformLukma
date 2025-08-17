@@ -863,8 +863,16 @@ namespace xPlatformLukma
             //copy video from camera to HDD
             try
             {
-                //FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.OnlyErrorDialogs);
-                FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
+                //If windows then show the dialogs, if MacOS, then just copy it silently
+                if (winPlatform)
+                {
+                    FileSystem.CopyFile(currentVideoPath, @"" + newSourcePathFile + @"", UIOption.AllDialogs);
+                }
+                else
+                {
+                    File.Copy(currentVideoPath, newSourcePathFile, overwrite: true);
+                }
+                
                 long currentVideoPosition = _mp.Time;
                 ThreadPool.QueueUserWorkItem(_ => MediaPlayerPlayVideo(newSourcePathFile, currentVideoPosition, false));
                 
@@ -1286,6 +1294,10 @@ namespace xPlatformLukma
             {
                 using StreamReader reader = ffmpeg.StandardError;
                 string line;
+                
+                if (ffmpeg == null || ffmpeg.StandardError == null)
+                    return; // ffmpeg not started yet, exit safely
+
 
                 while ((line = reader.ReadLine()) != null)
                 //while ((line = await reader.ReadLineAsync()) != null)

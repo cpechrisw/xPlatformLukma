@@ -8,7 +8,7 @@ namespace xPlatformLukma;
 
 public partial class AboutWindow : Window
 {
-    readonly string versionNumber = "1.9.4";
+    readonly string versionNumber = "1.9.5";
     
     public AboutWindow()
     {

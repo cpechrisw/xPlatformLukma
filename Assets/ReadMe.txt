@@ -46,6 +46,9 @@ Questions or Issues, see the 'About' from the Configure->About menu
 ----Known Issues----
 Yeah! None currently
 
+----1.9.5----
+Fixing crash on MacOS
+Fix copy issue on MacOS
 
 ----Version Information----
 ----1.9.4----
