@@ -78,8 +78,15 @@ namespace xPlatformLukma
         //
         public MainWindow()
         {
-            LukmaStartup();
-                        
+            InitializeComponent();
+            winPlatform = IsPlatformWindows();
+            this.Closing += AppClosingTest;
+
+            gSliderTickList = new(0, 0);
+            gVideoClip = new TimeSpan[] { TimeSpan.Zero, TimeSpan.Zero };
+
+            this.Opened += LukmaStartup;
+            this.Opened += CheckLicense;
         }
 
         //-----Verifying only 1 instance is running
@@ -107,13 +114,12 @@ namespace xPlatformLukma
         //--------- functions
         //---------
 
-        public void LukmaStartup()
+
+
+
+        public void LukmaStartup(object? sender, EventArgs e)
         {
-            InitializeComponent();
-            winPlatform = IsPlatformWindows();
-            this.Closing += AppClosingTest;
-            gSliderTickList = new(0, 0);
-            gVideoClip = new TimeSpan[] { TimeSpan.Zero, TimeSpan.Zero };
+            
 
             //Screen related intializations
             int screenWidth = Screens.Primary.WorkingArea.Width;
@@ -136,7 +142,7 @@ namespace xPlatformLukma
             myErrorsOnLoad += "" + Utils.ReadCustomLogos(configInfo);
             Load_ComboBoxes();
             InitializeButtonEventsLabels();
-            this.Opened += CheckLicense;
+            
             //VLC debugging
             //_libVLC.Log += (sender, e) => Debug.WriteLine($"VLC_Debug: [{e.Level}] {e.Message}");
 
@@ -912,7 +918,7 @@ namespace xPlatformLukma
 
             while (_mp.IsPlaying)
             {
-                Debug.Write("Debug: waiting");
+                Debug.Write("Debug: waiting" + Environment.NewLine);
                 Thread.Sleep(500); // Pauses the current thread
                 
             }
