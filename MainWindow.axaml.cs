@@ -1492,6 +1492,7 @@ namespace xPlatformLukma
         private void ReloadConfigValues(ConfigStruct tmpConfigInfo)
         {
             this.configInfo = tmpConfigInfo;
+            UpdateConfigPaths();
         }
         
         private void CategoriesBox_SelectedIndexChanged(object sender, EventArgs e) //populate combo_CatSubName ComboBox and display correct labels and boxes

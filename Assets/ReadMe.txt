@@ -2,7 +2,7 @@
 
 ----Prerequisite for Lukma---
 Requires Microsoft .NET Runtime (minimum of 6.0)
-Windows will prompt you to install it. Manually can be found here: https://dotnet.microsoft.com/en-us/download/dotnet
+Windows will prompt you to install it. Manually can be found here: https://dotnet.microsoft.com/en-us/download/dotnet . You will need to run the program with Admin privileges
 MacOS will be provided with Lukma or can be found manually above. Manually can be found here: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.31-macos-x64-installer
 
 
@@ -47,8 +47,9 @@ Questions or Issues, see the 'About' from the Configure->About menu
 Yeah! None currently
 
 ----1.9.5----
-Fixing crash on MacOS
+Fixing a startup crash on MacOS
 Fix copy issue on MacOS
+Fixed a general category update issue after changing settings dialog
 
 ----Version Information----
 ----1.9.4----
