@@ -126,13 +126,20 @@ namespace xPlatformLukma
             int screenHeight = Screens.Primary.WorkingArea.Height;
             lbl_ScreenRes.Content = "Monitor Resolution: " + screenWidth.ToString() + "x" + screenHeight.ToString();
 
-            
+
             //VLC initialization and View controls
-            Core.Initialize();
-            _libVLC = new LibVLC("--input-repeat=2","--no-audio");   //"--verbose=2"
-            _mp = new MediaPlayer(_libVLC);
-            VideoViewer.MediaPlayer = _mp;
-            
+            try 
+            {
+                Core.Initialize();
+                _libVLC = new LibVLC("--input-repeat=2", "--no-audio");   //"--verbose=2"
+                _mp = new MediaPlayer(_libVLC);
+                VideoViewer.MediaPlayer = _mp;
+
+            }
+            catch (DllNotFoundException ex) { ShowErrorMessageAndClose("LibVLC not found / wrong arch"); }
+            catch (BadImageFormatException ex) { ShowErrorMessageAndClose("LibVLC architecture mismatch"); }
+            catch (Exception ex) { ShowErrorMessageAndClose("LibVLC init failed"); }
+
             //Structure Intializations
             //newUtil = new Utils();
             configInfo = new ConfigStruct();
