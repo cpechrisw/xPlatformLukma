@@ -344,7 +344,7 @@ namespace xPlatformLukma
 
             }
 
-            UpdateConfigPaths();
+            UpdateGeneralAndTeamConfigPaths();
 
             //-------
             //Checking new config info variables and write them out if
@@ -424,7 +424,7 @@ namespace xPlatformLukma
         }
         //-----Updates calculated paths
         //  general, team and private team uploads
-        public void UpdateConfigPaths()
+        public void UpdateGeneralAndTeamConfigPaths()
         {
             //These have the ability to be changed.
             configInfo.generalCategoryDir = Path.Combine(configInfo.convertedVideosTopDir, "uploadVideos");
@@ -1492,7 +1492,6 @@ namespace xPlatformLukma
         private void ReloadConfigValues(ConfigStruct tmpConfigInfo)
         {
             this.configInfo = tmpConfigInfo;
-            UpdateConfigPaths();
         }
         
         private void CategoriesBox_SelectedIndexChanged(object sender, EventArgs e) //populate combo_CatSubName ComboBox and display correct labels and boxes

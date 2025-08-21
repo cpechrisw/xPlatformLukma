@@ -203,6 +203,10 @@ public partial class SettingsWindow : Window
             lbl_ConvertedVideoDir.Content = convertVideo;
             myConfigInfo.convertedVideosTopDir = convertVideo;
 
+            myConfigInfo.generalCategoryDir = Path.Combine(myConfigInfo.convertedVideosTopDir, "uploadVideos");
+            myConfigInfo.TeamUploadTopFolder = Path.Combine(myConfigInfo.convertedVideosTopDir, "teamuploadvideos");
+            myConfigInfo.PrivateTeamUploadTopFolder = Path.Combine(myConfigInfo.convertedVideosTopDir, "privateteamuploadvideos");
+
             //write change to file
             Utils.UpdateConfigFile(myConfigInfo, "convertedVideosTopDir", convertVideo);
         }
